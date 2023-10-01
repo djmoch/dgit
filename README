@@ -1,0 +1,34 @@
+Djmoch's Git Viewer
+===================
+
+DGit is designed to be a stripped down, fast Git viewer written in
+pure Go. Being written in pure Go, it is possible to statically-link
+the resulting command-line interface. When this is achieved, its only
+external requirements are the Git repositories themselves and any
+custom templates. This makes DGit suitable for dropping into a chroot
+or other restricted environment.
+
+HTTP Handler
+------------
+
+This module is imported as djmo.ch/dgit and provides a Go http.Handler
+called DGit. Drop this Handler into your site's http.ServeMux and
+start viewing Git repositories.
+
+Full documentation can be found by running "go doc -all ." from this
+directory.
+
+Command-Line Interface
+----------------------
+
+The easiest way to install the DGit CLI is with "go install
+djmo.ch/dgit/cmd/dgit@latest". From here, the server can be run as:
+
+    $ dgit serve http://localhost:8080
+
+An FCGI mode is also supported whenever a UNIX socket is provided:
+
+    $ dgit serve unix:/run/dgit/server.sock
+
+Full documentation can be found by running "go doc ./cmd/dgit" from
+this directory.
