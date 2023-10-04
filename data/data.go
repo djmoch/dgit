@@ -114,6 +114,8 @@ func (f FileMode) String() string {
 		return "-rw-r--r--"
 	case Executable:
 		return "-rwxr-xr-x"
+	case Symlink:
+		return "lrwxrwxrwx"
 	default:
 		return "Unknown"
 	}

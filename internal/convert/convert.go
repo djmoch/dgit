@@ -79,8 +79,10 @@ func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error
 			mode data.FileMode
 		)
 		switch entry.Mode {
-		case filemode.Regular, filemode.Deprecated, filemode.Executable:
+		case filemode.Regular, filemode.Deprecated:
 			mode = data.File
+		case filemode.Executable:
+			mode = data.Executable
 		case filemode.Dir:
 			mode = data.Dir
 		case filemode.Symlink:
