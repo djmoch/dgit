@@ -2,7 +2,10 @@ module djmo.ch/dgit
 
 go 1.20
 
-require github.com/go-git/go-git/v5 v5.9.0
+require (
+	github.com/dustin/go-humanize v1.0.1
+	github.com/go-git/go-git/v5 v5.9.0
+)
 
 require (
 	dario.cat/mergo v1.0.0 // indirect

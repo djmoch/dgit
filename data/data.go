@@ -6,12 +6,21 @@ package data
 
 import (
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 // IndexData is provided to the index template when executed and
 // becomes dot within the template.
 type IndexData struct {
 	Repos []*Repo
+}
+
+// Time is time.Time with additional methods for human-readability
+type Time time.Time
+
+func (t Time) Humanize() string {
+	return humanize.Time(time.Time(t))
 }
 
 // IndexRepo is a single element of [IndexData] and contains data for
@@ -29,7 +38,7 @@ type Repo struct {
 	// LastModified records the timestamp of the most recent
 	// commit as read from info/web/last-modified within the
 	// repository's Git directory.
-	LastModified time.Time
+	LastModified Time
 }
 
 // TreeData is provided to the head and tree templates when executed

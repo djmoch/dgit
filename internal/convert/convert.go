@@ -32,7 +32,7 @@ func ReposToIndexData(repos []*repo.Repo) data.IndexData {
 			Slug:         repo.Slug,
 			Owner:        repo.Owner,
 			Description:  repo.Description,
-			LastModified: repo.LastModified,
+			LastModified: data.Time(repo.LastModified),
 		}
 		d.Repos[i] = ir
 	}

@@ -46,7 +46,7 @@
 		<h1>Repositories</h1>
 		<table style="text-align: left">
 		{{- range .Repos }}
-		<tr><td><time>{{ .LastModified.Format "2006-01-02" }}</time></td><td><a href="{{ .Slug }}">{{ .Slug }}</a></td><td>{{ .Description }}</td></tr>{{ end }}
+		<tr><td><time>{{ .LastModified.Humanize }}</time></td><td><a href="{{ .Slug }}">{{ .Slug }}</a></td><td>{{ .Description }}</td></tr>{{ end }}
 		</table>
 	</div>
 </body>
