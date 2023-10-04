@@ -40,10 +40,13 @@ func ReposToIndexData(repos []*repo.Repo) data.IndexData {
 }
 
 func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
-	t := data.TreeData{
-		Repo:        repo.Slug,
-		RefOrCommit: req.RefOrCommit,
-	}
+	var (
+		t = data.TreeData{
+			Repo:        repo.Slug,
+			RefOrCommit: req.RefOrCommit,
+		}
+		readmes = make(map[string]plumbing.Hash)
+	)
 	hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
 	if err != nil {
 		return t, err
@@ -62,20 +65,9 @@ func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error
 	}
 	p := req.Path
 	for p != "" && p != "/" {
-		found := false
-		for _, entry := range gitTree.Entries {
-			if entry.Mode == filemode.Dir && strings.HasPrefix(p, entry.Name) {
-				found = true
-				p, _ = strings.CutPrefix(p, entry.Name)
-				p, _ = strings.CutPrefix(p, "/")
-				gitTree, err = repo.R.TreeObject(entry.Hash)
-				if err != nil {
-					return t, fmt.Errorf("error resolving tree: %w", err)
-				}
-			}
-		}
-		if !found {
-			return t, fmt.Errorf("error locating tree %s: %w", req.Path, ErrTreeNotFound)
+		gitTree, p, err = nextTree(gitTree, p, repo.R)
+		if err != nil {
+			return t, err
 		}
 	}
 	t.Tree.Hash = c.TreeHash.String()
@@ -109,22 +101,36 @@ func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error
 				t.RefOrCommit, req.Path, entry.Name)),
 		}
 		t.Tree.Entries[i] = te
-		if entry.Name == "README" {
-			b, err := repo.R.BlobObject(entry.Hash)
-			if err != nil {
-				return t, fmt.Errorf("error resolving README: %w", err)
-			}
-			breader, err := b.Reader()
-			if err != nil {
-				return t, fmt.Errorf("error opening README: %w", err)
-			}
-			defer breader.Close()
-			bytes, err := io.ReadAll(breader)
-			if err != nil {
-				return t, fmt.Errorf("error reading README: %w", err)
-			}
-			t.Readme = fmt.Sprintf("%s", bytes)
+		switch entry.Name {
+		case "README", "README.md", "README.rst":
+			readmes[entry.Name] = entry.Hash
 		}
+	}
+
+	if len(readmes) > 0 {
+		var (
+			hash plumbing.Hash
+			tmp  plumbing.Hash
+			ok   bool
+		)
+		// least preferred first
+		tmp, ok = readmes["README.rst"]
+		if ok {
+			hash = tmp
+		}
+		tmp, ok = readmes["README.md"]
+		if ok {
+			hash = tmp
+		}
+		tmp, ok = readmes["README"]
+		if ok {
+			hash = tmp
+		}
+		rBlob, err := readBlob(hash, repo.R)
+		if err != nil {
+			return t, err
+		}
+		t.Readme = rBlob.Contents
 	}
 	return t, nil
 }
@@ -154,55 +160,68 @@ func RepoToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error
 	p := req.Path
 	p, _ = strings.CutSuffix(p, "/")
 	for strings.Contains(p, "/") {
-		found := false
-		for _, entry := range gitTree.Entries {
-			if entry.Mode == filemode.Dir && strings.HasPrefix(p, entry.Name) {
-				found = true
-				p, _ = strings.CutPrefix(p, entry.Name)
-				p, _ = strings.CutPrefix(p, "/")
-				gitTree, err = repo.R.TreeObject(entry.Hash)
-				if err != nil {
-					return b, fmt.Errorf("error resolving tree: %w", err)
-				}
-			}
-		}
-		if !found {
-			return b, fmt.Errorf("error locating tree %s: %w", path.Dir(req.Path),
-				ErrBlobNotFound)
+		gitTree, p, err = nextTree(gitTree, p, repo.R)
+		if err != nil {
+			return b, err
 		}
 	}
-	var (
-		blob *object.Blob
 
-		baseName = path.Base(req.Path)
-	)
-	found := false
+	baseName := path.Base(req.Path)
 	for _, entry := range gitTree.Entries {
 		if entry.Name == baseName {
-			found = true
-			blob, err = repo.R.BlobObject(entry.Hash)
+			b.Blob, err = readBlob(entry.Hash, repo.R)
 			if err != nil {
-				return b, fmt.Errorf("error resolving blob: %w", err)
+				return b, err
+			}
+			break
+		}
+	}
+	return b, nil
+}
+
+func nextTree(tree *object.Tree, path string, repo *git.Repository) (*object.Tree, string, error) {
+	var (
+		found = false
+		p     = path
+
+		err error
+	)
+	for _, entry := range tree.Entries {
+		if entry.Mode == filemode.Dir && strings.HasPrefix(path, entry.Name) {
+			found = true
+			p, _ = strings.CutPrefix(p, entry.Name)
+			p, _ = strings.CutPrefix(p, "/")
+			tree, err = repo.TreeObject(entry.Hash)
+			if err != nil {
+				return nil, "", fmt.Errorf("error resolving tree: %w", err)
 			}
 		}
 	}
 	if !found {
-		return b, fmt.Errorf("error locating blob %s: %w", req.Path,
-			ErrBlobNotFound)
+		return nil, "", fmt.Errorf("error locating tree %s: %w", path, ErrTreeNotFound)
 	}
-	breader, err := blob.Reader()
+	return tree, p, nil
+}
+
+func readBlob(hash plumbing.Hash, repo *git.Repository) (data.Blob, error) {
+	var blob data.Blob
+	b, err := repo.BlobObject(hash)
 	if err != nil {
-		return b, fmt.Errorf("error opening %s: %w", req.Path, err)
+		return blob, fmt.Errorf("error resolving blob %s: %w", hash, err)
+	}
+	breader, err := b.Reader()
+	if err != nil {
+		return blob, fmt.Errorf("error opening blob %s: %w", hash, err)
 	}
 	defer breader.Close()
 	bytes, err := io.ReadAll(breader)
 	if err != nil {
-		return b, fmt.Errorf("error reading %s: %w", req.Path, err)
+		return blob, fmt.Errorf("error reading blob %s: %w", hash, err)
 	}
-	b.Blob.Hash = blob.Hash.String()
-	b.Blob.Size = blob.Size
-	b.Blob.Contents = fmt.Sprintf("%s", bytes)
-	return b, nil
+	blob.Contents = fmt.Sprintf("%s", bytes)
+	blob.Hash = b.Hash.String()
+	blob.Size = b.Size
+	return blob, nil
 }
 
 func refOrCommitToHash(refOrCommit string, repo *git.Repository) (plumbing.Hash, error) {
