@@ -143,7 +143,11 @@ func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {
 	head, err := repo.R.Head()
 	if err != nil {
 		t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
-		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{Repo: repo.Slug})
+		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
+			RequestData: data.RequestData{
+				Repo: repo.Slug,
+			},
+		})
 		return
 	}
 	dReq.RefOrCommit = path.Base(string(head.Name()))

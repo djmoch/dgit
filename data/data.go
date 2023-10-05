@@ -5,6 +5,8 @@
 package data
 
 import (
+	"path"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -16,9 +18,11 @@ type IndexData struct {
 	Repos []*Repo
 }
 
-// Time is time.Time with additional methods for human-readability
+// Time is [time.Time] with additional methods for human-readability
 type Time time.Time
 
+// Humanize returns a string in a human-readable, relative format,
+// e.g., "3 days ago," or, "10 minutes ago".
 func (t Time) Humanize() string {
 	return humanize.Time(time.Time(t))
 }
@@ -41,17 +45,61 @@ type Repo struct {
 	LastModified Time
 }
 
-// TreeData is provided to the head and tree templates when executed
-// and becomes dot within the template.
+type RequestData struct {
+	// The repository slug, i.e., the URL path up to the - path element.
+	Repo string
+	// The base name of the Git reference, or the commit hash.
+	RefOrCommit string
+	// The path of the tree within the repository.
+	Path string
+}
+
+// PathElems returns a slice of [PathElem] objects for each directory
+// in [RequestData.Path]. This is useful to build a breadcrumb, which
+// might look like:
+//
+//	{{ for range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit }}{{ .Path }}">{{ .Base }}</a>/{{ end }}
+func (r RequestData) PathElems() []PathElem {
+	var (
+		splitPath = strings.Split(string(r.Path), "/")
+		sp        = new(strings.Builder)
+		elems     = make([]PathElem, len(splitPath)-1, len(splitPath)-1)
+	)
+	for i := 0; i < len(splitPath)-1; i += 1 {
+		sp.WriteString("/" + splitPath[i])
+		elem := PathElem{
+			Repo:        r.Repo,
+			RefOrCommit: r.RefOrCommit,
+			Path:        sp.String(),
+			Base:        splitPath[i],
+		}
+		elems[i] = elem
+	}
+	return elems
+}
+
+// PathBase returns the base name of the request path. Returned data
+// has the property requestData.RequestBase() =
+// path.Base(requestData.Path).
+func (r RequestData) PathBase() string {
+	return path.Base(r.Path)
+}
+
+type PathElem struct {
+	Repo        string
+	RefOrCommit string
+	Path        string
+	Base        string
+}
+
+// TreeData extends [RequestData] and is provided to the head and tree
+// templates when executed and becomes dot within the template.
 //
 // The data in TreeData is, properly speaking, a conglomeration of
 // both commit and tree data. The data is combined here for ease of
 // presentation.
 type TreeData struct {
-	// The repository slug, i.e., the URL path up to the - path element.
-	Repo string
-	// The base name of the Git reference, or the commit hash.
-	RefOrCommit string
+	RequestData
 	// Commit information related to the tree.
 	Commit Commit
 	// The Tree itself.
@@ -83,6 +131,9 @@ type Commit struct {
 	// Message is the commit message, contains arbitrary text.
 	Message string
 }
+
+// Path is a URL path.
+type Path string
 
 // Tree contains information related to a Git tree.
 type Tree struct {
@@ -125,24 +176,21 @@ func (f FileMode) String() string {
 		return "-rwxr-xr-x"
 	case Symlink:
 		return "lrwxrwxrwx"
+	case Submodule:
+		return "submodule-"
 	default:
-		return "Unknown"
+		return "-unknown--"
 	}
 }
 
-// BlobData is provided to the blob template when executed and
-// becomes dot within the template.
+// BlobData extends [RequestData] and is provided to the blob template when
+// executed and becomes dot within the template.
 //
 // The data in TreeData is, properly speaking, a conglomeration of
 // both commit and tree data. The data is combined here for ease of
 // presentation.
 type BlobData struct {
-	// The repository slug, i.e., the URL path up to the - path element.
-	Repo string
-	// The base name of the Git reference, or the commit hash.
-	RefOrCommit string
-	// The path of the blob within the repo
-	Path string
+	RequestData
 	// Commit information related to the blob.
 	Commit Commit
 	// The Blob itself.

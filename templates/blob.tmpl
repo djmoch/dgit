@@ -43,7 +43,7 @@
 	</header>
 
 	<div id="main">
-		<h1 class="p-name">{{ .Path }} in <a href="/{{ .Repo }}">{{ .Repo }}</a></h1>
+		<h1 class="p-name">{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo }}">{{ .Repo }}</a></h1>
 		<h2 class="p-summary">Branch: {{ .RefOrCommit }}</h2>
 		<pre><code>{{ .Blob.Contents }}</code></pre>
 	</div>

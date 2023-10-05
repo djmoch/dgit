@@ -42,8 +42,11 @@ func ReposToIndexData(repos []*repo.Repo) data.IndexData {
 func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 	var (
 		t = data.TreeData{
-			Repo:        repo.Slug,
-			RefOrCommit: req.RefOrCommit,
+			RequestData: data.RequestData{
+				Repo:        repo.Slug,
+				Path:        req.Path,
+				RefOrCommit: req.RefOrCommit,
+			},
 		}
 		readmes = make(map[string]plumbing.Hash)
 	)
@@ -139,9 +142,11 @@ func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error
 
 func RepoToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 	b := data.BlobData{
-		Repo:        repo.Slug,
-		RefOrCommit: req.RefOrCommit,
-		Path:        req.Path,
+		RequestData: data.RequestData{
+			Repo:        repo.Slug,
+			RefOrCommit: req.RefOrCommit,
+			Path:        req.Path,
+		},
 	}
 	hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
 	if err != nil {
