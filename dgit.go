@@ -204,6 +204,8 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
 	refsData, err := convert.RepoToRefsData(repo)
+	sort.Sort(sort.Reverse(convert.ByAge(refsData.Branches)))
+	sort.Sort(sort.Reverse(convert.ByAge(refsData.Tags)))
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
