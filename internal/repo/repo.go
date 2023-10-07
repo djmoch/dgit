@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"djmo.ch/dgit/config"
-	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5"
 )
 
 const lastModifiedFormat = "2006-01-02 15:04:05 -0700"

@@ -45,7 +45,7 @@
 	<div id="main">
 		<h1 class="p-name">{{ if (and (ne .Path "") (ne .Path "/")) }}{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo }}">{{ .Repo }}</a>{{ else }}{{ .Repo }}{{ end }}</h1>
 		{{ if .IsEmpty }}<p>Repository is empty</p>
-		{{ else }}<h2 class="p-summary">Branch: {{ .RefOrCommit }}</h2>
+		{{ else }}<h2 class="p-summary"><a href="/{{ .Repo }}/-/refs">Ref:</a> {{ .RefOrCommit }}</h2>
 		<table style="text-align: left">
 		<colgroup>
 			<col span="1" style="width: 25%;">

@@ -202,3 +202,16 @@ type Blob struct {
 	Size     int64
 	Contents string
 }
+
+// RefsData is provided to the refs template when executed and becomes
+// dot within the template.
+type RefsData struct {
+	Repo string
+	Branches []Reference
+	Tags []Reference
+}
+
+type Reference struct {
+	Name string
+	Time Time
+}

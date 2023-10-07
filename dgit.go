@@ -106,6 +106,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "blob":
 		h := middleware.Repo(d.blobHandler, d.Config, dReq)
 		h(w, req)
+	case "refs":
+		h := middleware.Repo(d.refsHandler, d.Config, dReq)
+		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
 		w.WriteHeader(http.StatusBadRequest)
@@ -170,10 +173,6 @@ func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "index.tmpl", indexData)
 }
 
-func (d *DGit) refHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO
-}
-
 func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO
 }
@@ -200,4 +199,17 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "blob.tmpl", treeData)
+}
+
+func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
+	repo := r.Context().Value("repo").(*repo.Repo)
+	refsData, err := convert.RepoToRefsData(repo)
+	if err != nil {
+		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal server error")
+		return
+	}
+	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t.ExecuteTemplate(w, "refs.tmpl", refsData)
 }

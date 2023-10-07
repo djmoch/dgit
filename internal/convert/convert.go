@@ -14,7 +14,7 @@ import (
 	"djmo.ch/dgit/data"
 	"djmo.ch/dgit/internal/repo"
 	"djmo.ch/dgit/internal/request"
-	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -186,6 +186,56 @@ func RepoToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error
 	return b, nil
 }
 
+func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
+	r := data.RefsData{
+		Repo: repo.Slug,
+		Tags: make([]data.Reference, 0, 0),
+	}
+	// TODO(dmoch): repo.R.References() might be cleaner
+	iter, err := repo.R.Branches()
+	if err != nil {
+		return r, fmt.Errorf("error listing branches: %w", err)
+	}
+	if err := iter.ForEach(func(ref *plumbing.Reference) error {
+		if object, err := repo.R.CommitObject(ref.Hash()); err == nil {
+			r.Branches = append(r.Branches, data.Reference{
+				Name: path.Base(string(ref.Name())),
+				Time: data.Time(object.Committer.When),
+			})
+			return nil
+		}
+		return fmt.Errorf("error resolving branch %s: %w", ref, err)
+	}); err != nil {
+		return r, fmt.Errorf("error enumerating branches: %w", err)
+	}
+
+	iter, err = repo.R.Tags()
+	if err != nil {
+		return r, fmt.Errorf("error listing tags: %w", err)
+	}
+	if err := iter.ForEach(func(ref *plumbing.Reference) error {
+		if object, err := repo.R.TagObject(ref.Hash()); err == nil {
+			r.Tags = append(r.Tags, data.Reference{
+				Name: path.Base(string(ref.Name())),
+				Time: data.Time(object.Tagger.When),
+			})
+			return nil
+		}
+		if object, err := repo.R.CommitObject(ref.Hash()); err == nil {
+			r.Tags = append(r.Tags, data.Reference{
+				Name: path.Base(string(ref.Name())),
+				Time: data.Time(object.Committer.When),
+			})
+			return nil
+		}
+		return fmt.Errorf("error resolving tag %s: %w", ref, err)
+	}); err != nil {
+		return r, fmt.Errorf("error enumerating tags: %w", err)
+	}
+
+	return r, nil
+}
+
 func nextTree(tree *object.Tree, path string, repo *git.Repository) (*object.Tree, string, error) {
 	var (
 		found = false
@@ -244,5 +294,10 @@ func refOrCommitToHash(refOrCommit string, repo *git.Repository) (plumbing.Hash,
 		return plumbing.NewHash(""),
 			fmt.Errorf("failed to resolve ref: %s", refOrCommit)
 	}
-	return tag.Hash(), nil
+
+	tObject, err := repo.TagObject(tag.Hash())
+	if err != nil {
+		return tag.Hash(), nil
+	}
+	return tObject.Target, nil
 }
