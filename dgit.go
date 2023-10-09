@@ -127,7 +127,7 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
 	dReq := r.Context().Value("dReq").(*request.Request)
-	treeData, err := convert.RepoToTreeData(repo, dReq)
+	treeData, err := convert.ToTreeData(repo, dReq)
 	if err != nil {
 		if errors.Is(err, convert.ErrTreeNotFound) {
 			log.Println(err)
@@ -148,7 +148,7 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
 	dReq := r.Context().Value("dReq").(*request.Request)
-	logData, err := convert.RepoToLogData(repo, dReq)
+	logData, err := convert.ToLogData(repo, dReq)
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -175,7 +175,7 @@ func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dReq.RefOrCommit = path.Base(string(head.Name()))
-	treeData, err := convert.RepoToTreeData(repo, dReq)
+	treeData, err := convert.ToTreeData(repo, dReq)
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -190,7 +190,7 @@ func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
 	repos := r.Context().Value("repos").([]*repo.Repo)
 	sort.Sort(sort.Reverse(repo.ByLastModified(repos)))
-	indexData := convert.ReposToIndexData(repos)
+	indexData := convert.ToIndexData(repos)
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "index.tmpl", indexData)
@@ -207,7 +207,7 @@ func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
 	dReq := r.Context().Value("dReq").(*request.Request)
-	treeData, err := convert.RepoToBlobData(repo, dReq)
+	treeData, err := convert.ToBlobData(repo, dReq)
 	if err != nil {
 		if errors.Is(err, convert.ErrBlobNotFound) {
 			log.Println(err)
@@ -227,7 +227,7 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 
 func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
-	refsData, err := convert.RepoToRefsData(repo)
+	refsData, err := convert.ToRefsData(repo)
 	sort.Sort(sort.Reverse(convert.ByAge(refsData.Branches)))
 	sort.Sort(sort.Reverse(convert.ByAge(refsData.Tags)))
 	if err != nil {

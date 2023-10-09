@@ -25,7 +25,7 @@ var (
 	ErrBlobNotFound = errors.New("blob not found")
 )
 
-func ReposToIndexData(repos []*repo.Repo) data.IndexData {
+func ToIndexData(repos []*repo.Repo) data.IndexData {
 	d := data.IndexData{Repos: make([]*data.Repo, len(repos), len(repos))}
 	for i, repo := range repos {
 		ir := &data.Repo{
@@ -39,7 +39,7 @@ func ReposToIndexData(repos []*repo.Repo) data.IndexData {
 	return d
 }
 
-func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
+func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 	var (
 		t = data.TreeData{
 			RequestData: data.RequestData{
@@ -140,7 +140,7 @@ func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error
 	return t, nil
 }
 
-func RepoToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
+func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 	b := data.BlobData{
 		RequestData: data.RequestData{
 			Repo:        repo.Slug,
@@ -186,7 +186,7 @@ func RepoToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error
 	return b, nil
 }
 
-func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
+func ToRefsData(repo *repo.Repo) (data.RefsData, error) {
 	r := data.RefsData{
 		Repo: repo.Slug,
 		Tags: make([]data.Reference, 0, 0),
@@ -238,7 +238,7 @@ func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
 	return r, nil
 }
 
-func RepoToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
+func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 	l := data.LogData{
 		Repo:        repo.Slug,
 		RefOrCommit: req.RefOrCommit,
