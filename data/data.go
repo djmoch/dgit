@@ -9,8 +9,6 @@ import (
 	"path"
 	"strings"
 	"time"
-
-	"github.com/dustin/go-humanize"
 )
 
 var LogPageSize = 20
@@ -19,19 +17,6 @@ var LogPageSize = 20
 // becomes dot within the template.
 type IndexData struct {
 	Repos []*Repo
-}
-
-// Time is [time.Time] with additional methods for human-readability
-type Time time.Time
-
-// Humanize returns a string in a human-readable, relative format,
-// e.g., "3 days ago," or, "10 minutes ago".
-func (t Time) Humanize() string {
-	return humanize.Time(time.Time(t))
-}
-
-func (t Time) Format(fmt string) string {
-	return time.Time(t).Format(fmt)
 }
 
 // IndexRepo is a single element of [IndexData] and contains data for
@@ -49,7 +34,7 @@ type Repo struct {
 	// LastModified records the timestamp of the most recent
 	// commit as read from info/web/last-modified within the
 	// repository's Git directory.
-	LastModified Time
+	LastModified time.Time
 }
 
 type RequestData struct {
@@ -140,7 +125,7 @@ type Commit struct {
 	// ParentHashes are the hash(es) of the parent commit(s)
 	ParentHashes []Hash
 	// Time is the commit timestamp
-	Time Time
+	Time time.Time
 }
 
 func (c Commit) HasParents() bool {
@@ -236,7 +221,7 @@ type RefsData struct {
 
 type Reference struct {
 	Name string
-	Time Time
+	Time time.Time
 }
 
 // LogData is provided to the log template when executed and becomes

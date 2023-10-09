@@ -51,7 +51,7 @@
 			<col span="1" style="width: flex;">
 		</colgroup>
 		{{- range .Repos }}
-		<tr><td><time>{{ .LastModified.Humanize }}</time></td><td><a href="{{ .Slug }}">{{ .Slug }}</a></td><td>{{ .Description }}</td></tr>{{ end }}
+		<tr><td><time>{{ Humanize .LastModified }}</time></td><td><a href="{{ .Slug }}">{{ .Slug }}</a></td><td>{{ .Description }}</td></tr>{{ end }}
 		</table>
 	</div>
 </body>

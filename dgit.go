@@ -32,10 +32,15 @@ import (
 	"djmo.ch/dgit/internal/middleware"
 	"djmo.ch/dgit/internal/repo"
 	"djmo.ch/dgit/internal/request"
+	"github.com/dustin/go-humanize"
 )
 
-//go:embed templates/*.tmpl
-var templates embed.FS
+var (
+	//go:embed templates/*.tmpl
+	templates embed.FS
+
+	funcMap = template.FuncMap{"Humanize": humanize.Time}
+)
 
 // DGit is an [http.Handler] and can therefore be dropped into an
 // [http.ServeMux]. It serves read-only pages with Git repository
@@ -135,7 +140,8 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Internal server error")
 		return
 	}
-	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "tree.tmpl", treeData)
 }
 
@@ -149,7 +155,8 @@ func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Internal server error")
 		return
 	}
-	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "log.tmpl", logData)
 }
 
@@ -158,7 +165,8 @@ func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {
 	dReq := r.Context().Value("dReq").(*request.Request)
 	head, err := repo.R.Head()
 	if err != nil {
-		t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+		t := template.Must(template.New("templates").Funcs(funcMap).
+			ParseFS(templates, "templates/*.tmpl"))
 		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
 			RequestData: data.RequestData{
 				Repo: repo.Slug,
@@ -174,7 +182,8 @@ func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Internal server error")
 		return
 	}
-	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "tree.tmpl", treeData)
 }
 
@@ -182,7 +191,8 @@ func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
 	repos := r.Context().Value("repos").([]*repo.Repo)
 	sort.Sort(sort.Reverse(repo.ByLastModified(repos)))
 	indexData := convert.ReposToIndexData(repos)
-	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "index.tmpl", indexData)
 }
 
@@ -210,7 +220,8 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Internal server error")
 		return
 	}
-	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "blob.tmpl", treeData)
 }
 
@@ -225,6 +236,7 @@ func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Internal server error")
 		return
 	}
-	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "refs.tmpl", refsData)
 }

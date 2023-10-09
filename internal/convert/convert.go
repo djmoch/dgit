@@ -32,7 +32,7 @@ func ReposToIndexData(repos []*repo.Repo) data.IndexData {
 			Slug:         repo.Slug,
 			Owner:        repo.Owner,
 			Description:  repo.Description,
-			LastModified: data.Time(repo.LastModified),
+			LastModified: repo.LastModified,
 		}
 		d.Repos[i] = ir
 	}
@@ -201,7 +201,7 @@ func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
 		if object, err := repo.R.CommitObject(ref.Hash()); err == nil {
 			r.Branches = append(r.Branches, data.Reference{
 				Name: path.Base(string(ref.Name())),
-				Time: data.Time(object.Committer.When),
+				Time: object.Committer.When,
 			})
 			return nil
 		}
@@ -219,14 +219,14 @@ func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
 		if object, err := repo.R.TagObject(ref.Hash()); err == nil {
 			r.Tags = append(r.Tags, data.Reference{
 				Name: path.Base(string(ref.Name())),
-				Time: data.Time(object.Tagger.When),
+				Time: object.Tagger.When,
 			})
 			return nil
 		}
 		if object, err := repo.R.CommitObject(ref.Hash()); err == nil {
 			r.Tags = append(r.Tags, data.Reference{
 				Name: path.Base(string(ref.Name())),
-				Time: data.Time(object.Committer.When),
+				Time: object.Committer.When,
 			})
 			return nil
 		}
@@ -274,7 +274,7 @@ func RepoToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) 
 			Author:    c.Author.Name,
 			Committer: c.Committer.Name,
 			Message:   strings.Split(c.Message, "\n")[0],
-			Time:      data.Time(c.Committer.When),
+			Time:      c.Committer.When,
 		}
 		commit.ParentHashes = make([]data.Hash, len(c.ParentHashes),
 			len(c.ParentHashes))
