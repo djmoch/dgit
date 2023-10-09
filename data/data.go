@@ -5,12 +5,15 @@
 package data
 
 import (
+	"fmt"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
 )
+
+var LogPageSize = 20
 
 // IndexData is provided to the index template when executed and
 // becomes dot within the template.
@@ -25,6 +28,10 @@ type Time time.Time
 // e.g., "3 days ago," or, "10 minutes ago".
 func (t Time) Humanize() string {
 	return humanize.Time(time.Time(t))
+}
+
+func (t Time) Format(fmt string) string {
+	return time.Time(t).Format(fmt)
 }
 
 // IndexRepo is a single element of [IndexData] and contains data for
@@ -122,7 +129,7 @@ func (t TreeData) IsEmpty() bool {
 // Commit contains information related to a Git commit.
 type Commit struct {
 	// Hash of the commit object.
-	Hash string
+	Hash Hash
 	// Author is the original author of the commit.
 	Author string
 	// Committer is the one performing the commit, might be different from
@@ -130,6 +137,22 @@ type Commit struct {
 	Committer string
 	// Message is the commit message, contains arbitrary text.
 	Message string
+	// ParentHashes are the hash(es) of the parent commit(s)
+	ParentHashes []Hash
+	// Time is the commit timestamp
+	Time Time
+}
+
+func (c Commit) HasParents() bool {
+	return len(c.ParentHashes) != 0
+}
+
+// Hash is a Git hash
+type Hash string
+
+// Short returns a short version of the Git hash
+func (h Hash) Short() string {
+	return fmt.Sprint(h[:7])
 }
 
 // Path is a URL path.
@@ -206,12 +229,26 @@ type Blob struct {
 // RefsData is provided to the refs template when executed and becomes
 // dot within the template.
 type RefsData struct {
-	Repo string
+	Repo     string
 	Branches []Reference
-	Tags []Reference
+	Tags     []Reference
 }
 
 type Reference struct {
 	Name string
 	Time Time
+}
+
+// LogData is provided to the log template when executed and becomes
+// dot within the template.
+type LogData struct {
+	Repo        string
+	RefOrCommit string
+	FromHash    Hash
+	Commits     []Commit
+	NextPage    Hash
+}
+
+func (l LogData) HasNext() bool {
+	return l.NextPage != ""
 }

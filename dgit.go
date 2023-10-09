@@ -109,6 +109,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "refs":
 		h := middleware.Repo(d.refsHandler, d.Config, dReq)
 		h(w, req)
+	case "log":
+		h := middleware.Repo(d.logHandler, d.Config, dReq)
+		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
 		w.WriteHeader(http.StatusBadRequest)
@@ -137,7 +140,17 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	repo := r.Context().Value("repo").(*repo.Repo)
+	dReq := r.Context().Value("dReq").(*request.Request)
+	logData, err := convert.RepoToLogData(repo, dReq)
+	if err != nil {
+		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal server error")
+		return
+	}
+	t := template.Must(template.ParseFS(templates, "templates/*.tmpl"))
+	t.ExecuteTemplate(w, "log.tmpl", logData)
 }
 
 func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {

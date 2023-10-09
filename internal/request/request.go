@@ -4,9 +4,12 @@ package request
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"path"
 	"strings"
+
+	"djmo.ch/dgit/data"
 )
 
 var (
@@ -19,8 +22,7 @@ type Request struct {
 	Section     string
 	RefOrCommit string
 	Path        string
-	ID1         string
-	ID2         string
+	From        data.Hash
 }
 
 func Parse(url *url.URL) (*Request, error) {
@@ -64,6 +66,11 @@ func Parse(url *url.URL) (*Request, error) {
 		fallthrough
 	case 1:
 		r.Section = splitPath[0]
+	}
+
+	r.From = data.Hash(url.Query().Get("from"))
+	if r.From != "" && r.Section != "log" {
+		return nil, fmt.Errorf("%w: 'from' in query not in 'log'", ErrMalformed)
 	}
 	return r, nil
 }

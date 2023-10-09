@@ -58,7 +58,7 @@ func RepoToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error
 	if err != nil {
 		return t, fmt.Errorf("error resolving commit: %w", err)
 	}
-	t.Commit.Hash = c.Hash.String()
+	t.Commit.Hash = data.Hash(c.Hash.String())
 	t.Commit.Author = c.Author.Name
 	t.Commit.Committer = c.Committer.Name
 	t.Commit.Message = c.Message
@@ -156,7 +156,7 @@ func RepoToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error
 	if err != nil {
 		return b, fmt.Errorf("error resolving commit: %w", err)
 	}
-	b.Commit.Hash = c.Hash.String()
+	b.Commit.Hash = data.Hash(c.Hash.String())
 	b.Commit.Author = c.Author.Name
 	b.Commit.Committer = c.Committer.Name
 	b.Commit.Message = c.Message
@@ -192,11 +192,12 @@ func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
 		Tags: make([]data.Reference, 0, 0),
 	}
 	// TODO(dmoch): repo.R.References() might be cleaner
-	iter, err := repo.R.Branches()
+	bIter, err := repo.R.Branches()
 	if err != nil {
 		return r, fmt.Errorf("error listing branches: %w", err)
 	}
-	if err := iter.ForEach(func(ref *plumbing.Reference) error {
+	defer bIter.Close()
+	if err := bIter.ForEach(func(ref *plumbing.Reference) error {
 		if object, err := repo.R.CommitObject(ref.Hash()); err == nil {
 			r.Branches = append(r.Branches, data.Reference{
 				Name: path.Base(string(ref.Name())),
@@ -209,11 +210,12 @@ func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
 		return r, fmt.Errorf("error enumerating branches: %w", err)
 	}
 
-	iter, err = repo.R.Tags()
+	tIter, err := repo.R.Tags()
 	if err != nil {
 		return r, fmt.Errorf("error listing tags: %w", err)
 	}
-	if err := iter.ForEach(func(ref *plumbing.Reference) error {
+	defer tIter.Close()
+	if err := tIter.ForEach(func(ref *plumbing.Reference) error {
 		if object, err := repo.R.TagObject(ref.Hash()); err == nil {
 			r.Tags = append(r.Tags, data.Reference{
 				Name: path.Base(string(ref.Name())),
@@ -234,6 +236,57 @@ func RepoToRefsData(repo *repo.Repo) (data.RefsData, error) {
 	}
 
 	return r, nil
+}
+
+func RepoToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
+	l := data.LogData{
+		Repo:        repo.Slug,
+		RefOrCommit: req.RefOrCommit,
+		Commits:     make([]data.Commit, 0, data.LogPageSize),
+	}
+	l.FromHash = req.From
+	if req.From == "" {
+		hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
+		if err != nil {
+			return l, err
+		}
+		l.FromHash = data.Hash(hash.String())
+	}
+	lo := &git.LogOptions{
+		From:  plumbing.NewHash(string(l.FromHash)),
+		Order: git.LogOrderCommitterTime,
+	}
+	gl, err := repo.R.Log(lo)
+	defer gl.Close()
+	if err != nil {
+		return l, fmt.Errorf("error getting log: %w", err)
+	}
+	for i := 0; i < data.LogPageSize; i += 1 {
+		c, err := gl.Next()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return l, fmt.Errorf("error getting commit from log: %w", err)
+		}
+		commit := data.Commit{
+			Hash:      data.Hash(c.Hash.String()),
+			Author:    c.Author.Name,
+			Committer: c.Committer.Name,
+			Message:   strings.Split(c.Message, "\n")[0],
+			Time:      data.Time(c.Committer.When),
+		}
+		commit.ParentHashes = make([]data.Hash, len(c.ParentHashes),
+			len(c.ParentHashes))
+		for i, ph := range c.ParentHashes {
+			commit.ParentHashes[i] = data.Hash(ph.String())
+		}
+		l.Commits = append(l.Commits, commit)
+	}
+	if len(l.Commits) == data.LogPageSize && l.Commits[data.LogPageSize-1].HasParents() {
+		l.NextPage = l.Commits[data.LogPageSize-1].ParentHashes[0]
+	}
+	return l, nil
 }
 
 func nextTree(tree *object.Tree, path string, repo *git.Repository) (*object.Tree, string, error) {
