@@ -117,6 +117,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "log":
 		h := middleware.Repo(d.logHandler, d.Config, dReq)
 		h(w, req)
+	case "commit":
+		h := middleware.Repo(d.commitHandler, d.Config, dReq)
+		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
 		w.WriteHeader(http.StatusBadRequest)
@@ -197,7 +200,18 @@ func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	repo := r.Context().Value("repo").(*repo.Repo)
+	dReq := r.Context().Value("dReq").(*request.Request)
+	commitData, err := convert.ToCommitData(repo, dReq)
+	if err != nil {
+		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal server error")
+		return
+	}
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
+	t.ExecuteTemplate(w, "commit.tmpl", commitData)
 }
 
 func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {

@@ -17,6 +17,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
+	"github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
@@ -289,6 +290,77 @@ func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 	return l, nil
 }
 
+func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error) {
+	c := data.CommitData{
+		Repo:        repo.Slug,
+		RefOrCommit: req.RefOrCommit,
+	}
+	hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
+	if err != nil {
+		return c, err
+	}
+	gc, err := repo.R.CommitObject(hash)
+	if err != nil {
+		return c, fmt.Errorf("error resolving commit: %w", err)
+	}
+	c.Commit.Hash = data.Hash(gc.Hash.String())
+	c.Commit.Author = gc.Author.Name
+	c.Commit.Committer = gc.Committer.Name
+	c.Commit.Message = gc.Message
+	c.Commit.Time = gc.Committer.When
+	fileStats, err := gc.Stats()
+	if err != nil {
+		return c, fmt.Errorf("error getting stats for commit: %w", err)
+	}
+	c.Diffstat = fileStats.String()
+	c.Commit.ParentHashes = make([]data.Hash, len(gc.ParentHashes),
+		len(gc.ParentHashes))
+	for i, ph := range gc.ParentHashes {
+		c.Commit.ParentHashes[i] = data.Hash(ph.String())
+	}
+	switch len(gc.ParentHashes) {
+	case 0:
+		files, err := gc.Files()
+		c.FilePatches = make([]data.FilePatch, 0)
+		if err != nil {
+			return c, fmt.Errorf("error getting commit files: %w", err)
+		}
+		if err = files.ForEach(func(f *object.File) error {
+			isBinary, err := f.IsBinary()
+			if err != nil {
+				return fmt.Errorf("IsBinary error: %w", err)
+			}
+			contents, err := f.Contents()
+			if err != nil {
+				return fmt.Errorf("Contents error: %w", err)
+			}
+			fp := data.FilePatch{
+				IsBinary: isBinary,
+				File:     f.Name + " (created)",
+				Chunks: []data.Chunk{
+					data.Chunk{Content: contents, Type: data.Add},
+				},
+			}
+			c.FilePatches = append(c.FilePatches, fp)
+			return nil
+		}); err != nil {
+			return c, fmt.Errorf("error reading commit files: %w", err)
+		}
+	default:
+		pcHash := gc.ParentHashes[0]
+		pc, err := repo.R.CommitObject(pcHash)
+		if err != nil {
+			return c, fmt.Errorf("error resolving parent commit: %w", err)
+		}
+		patch, err := pc.Patch(gc)
+		if err != nil {
+			return c, fmt.Errorf("error resolving commit patch: %w", err)
+		}
+		c.FilePatches = toFilePatches(patch.FilePatches())
+	}
+	return c, nil
+}
+
 func nextTree(tree *object.Tree, path string, repo *git.Repository) (*object.Tree, string, error) {
 	var (
 		found = false
@@ -353,4 +425,35 @@ func refOrCommitToHash(refOrCommit string, repo *git.Repository) (plumbing.Hash,
 		return tag.Hash(), nil
 	}
 	return tObject.Target, nil
+}
+
+func toFilePatches(dPatches []diff.FilePatch) []data.FilePatch {
+	patches := make([]data.FilePatch, len(dPatches), len(dPatches))
+	for i, dp := range dPatches {
+		chunks := dp.Chunks()
+		p := data.FilePatch{
+			IsBinary: dp.IsBinary(),
+			Chunks:   make([]data.Chunk, len(chunks), len(chunks)),
+		}
+		from, to := dp.Files()
+		switch {
+		case from == nil:
+			p.File = to.Path() + " (created)"
+		case to == nil:
+			p.File = from.Path() + " (deleted)"
+		case from.Path() == to.Path():
+			p.File = from.Path()
+		default:
+			p.File = from.Path() + " --> " + to.Path()
+		}
+		for j, pc := range dp.Chunks() {
+			c := data.Chunk{
+				Content: pc.Content(),
+				Type:    data.Operation(pc.Type()),
+			}
+			p.Chunks[j] = c
+		}
+		patches[i] = p
+	}
+	return patches
 }

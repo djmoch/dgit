@@ -5,6 +5,7 @@
 package data
 
 import (
+	"bufio"
 	"fmt"
 	"path"
 	"strings"
@@ -237,3 +238,55 @@ type LogData struct {
 func (l LogData) HasNext() bool {
 	return l.NextPage != ""
 }
+
+type CommitData struct {
+	Repo        string
+	RefOrCommit string
+	Commit      Commit
+	Diffstat    string
+	FilePatches []FilePatch
+}
+
+type FilePatch struct {
+	IsBinary bool
+	File     string
+	Chunks   []Chunk
+}
+
+func (fp FilePatch) String() string {
+	if fp.IsBinary {
+		return "Changes to binary file"
+	}
+
+	sb := new(strings.Builder)
+	for _, c := range fp.Chunks {
+		s := bufio.NewScanner(strings.NewReader(c.Content))
+		for s.Scan() {
+			switch c.Type {
+			case Equal:
+				sb.WriteString(" " + s.Text() + "\n")
+			case Add:
+				sb.WriteString("+" + s.Text() + "\n")
+			case Delete:
+				sb.WriteString("-" + s.Text() + "\n")
+			}
+		}
+		if s.Err() != nil {
+			return "Error scanning chunks to build patch"
+		}
+	}
+	return sb.String()
+}
+
+type Chunk struct {
+	Content string
+	Type    Operation
+}
+
+type Operation int
+
+const (
+	Equal Operation = iota
+	Add
+	Delete
+)

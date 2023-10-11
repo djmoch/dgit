@@ -17,4 +17,4 @@ https://git.danielmoch.com/dgit/-/tree/v0.1.0
 Added
 
  - Scaffolding for subcommands and documentation
- - Viewing repositories, trees, log, refs, and blobs
+ - Viewing repositories, trees, log, refs, commits, and blobs
