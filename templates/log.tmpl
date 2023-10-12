@@ -43,7 +43,15 @@
 	</header>
 
 	<div id="main">
-		<h1>Log From <a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit }}">{{ .RefOrCommit }}</a> For <a href="/{{ .Repo }}">{{ .Repo }}</a></h1>
+		<h1 class="p-name">Log</h1>
+		<h2 class="p-summary">
+			at
+			<a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit }}">{{ .RefOrCommit }}</a>
+			 in
+			<a href="/{{ .Repo }}">{{ .Repo }}</a>
+			&ndash;
+			<a href="/{{ .Repo }}/-/refs">Refs</a></h2>
+		</h2>
 		<table style="text-align: left">
 		<colgroup>
 			<col span="1" style="width: 10em;">
