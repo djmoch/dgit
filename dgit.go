@@ -23,7 +23,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path"
 	"sort"
 
 	"djmo.ch/dgit/config"
@@ -103,7 +102,7 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h := middleware.Repos(d.rootHandler, d.Config)
 		h(w, req)
 	case "head":
-		h := middleware.Repo(d.headHandler, d.Config, dReq)
+		h := middleware.Repo(middleware.ResolveHead(d.treeHandler), d.Config, dReq)
 		h(w, req)
 	case "tree":
 		h := middleware.Repo(d.treeHandler, d.Config, dReq)
@@ -130,6 +129,16 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
 	dReq := r.Context().Value("dReq").(*request.Request)
+	if dReq.RefOrCommit == "" {
+		t := template.Must(template.New("templates").Funcs(funcMap).
+			ParseFS(templates, "templates/*.tmpl"))
+		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
+			RequestData: data.RequestData{
+				Repo: repo.Slug,
+			},
+		})
+		return
+	}
 	treeData, err := convert.ToTreeData(repo, dReq)
 	if err != nil {
 		if errors.Is(err, convert.ErrTreeNotFound) {
@@ -161,33 +170,6 @@ func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "log.tmpl", logData)
-}
-
-func (d *DGit) headHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
-	dReq := r.Context().Value("dReq").(*request.Request)
-	head, err := repo.R.Head()
-	if err != nil {
-		t := template.Must(template.New("templates").Funcs(funcMap).
-			ParseFS(templates, "templates/*.tmpl"))
-		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
-			RequestData: data.RequestData{
-				Repo: repo.Slug,
-			},
-		})
-		return
-	}
-	dReq.RefOrCommit = path.Base(string(head.Name()))
-	treeData, err := convert.ToTreeData(repo, dReq)
-	if err != nil {
-		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
-		return
-	}
-	t := template.Must(template.New("templates").Funcs(funcMap).
-		ParseFS(templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "tree.tmpl", treeData)
 }
 
 func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {

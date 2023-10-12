@@ -8,13 +8,31 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"djmo.ch/dgit/config"
 	"djmo.ch/dgit/internal/projectlist"
 	"djmo.ch/dgit/internal/repo"
 	"djmo.ch/dgit/internal/request"
+	"github.com/go-git/go-git/v5/plumbing"
 )
+
+func ResolveHead(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		repo := r.Context().Value("repo").(*repo.Repo)
+		dReq := r.Context().Value("dReq").(*request.Request)
+		head, err := repo.R.Head()
+		if err != nil {
+			head = plumbing.NewReferenceFromStrings("", "")
+		}
+		dReq.RefOrCommit = path.Base(string(head.Name()))
+		if dReq.RefOrCommit == "." {
+			dReq.RefOrCommit = ""
+		}
+		h(w, r)
+	}
+}
 
 func Repos(h http.HandlerFunc, c config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
