@@ -80,8 +80,6 @@ type DGit struct {
 // ServeHTTP implements the [http.Handler] interface method.
 func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	dReq, err := request.Parse(r.URL)
-	ctx := context.WithValue(r.Context(), "dReq", dReq)
-	req := r.WithContext(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, request.ErrMalformed):
@@ -98,30 +96,35 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	ctx := context.WithValue(r.Context(), "dReq", dReq)
+	ctx = context.WithValue(ctx, "cfg", d.Config)
+	req := r.WithContext(ctx)
+
 	switch dReq.Section {
 	case "repo":
-		h := middleware.Repos(d.rootHandler, d.Config)
+		h := middleware.Get(middleware.Repos(d.rootHandler))
 		h(w, req)
 	case "head":
-		h := middleware.Repo(middleware.ResolveHead(d.treeHandler), d.Config, dReq)
+		h := middleware.Get(middleware.Repo(middleware.ResolveHead(d.treeHandler)))
 		h(w, req)
 	case "tree":
-		h := middleware.Repo(d.treeHandler, d.Config, dReq)
+		h := middleware.Get(middleware.Repo(d.treeHandler))
 		h(w, req)
 	case "blob":
-		h := middleware.Repo(d.blobHandler, d.Config, dReq)
+		h := middleware.Get(middleware.Repo(d.blobHandler))
 		h(w, req)
 	case "refs":
-		h := middleware.Repo(d.refsHandler, d.Config, dReq)
+		h := middleware.Get(middleware.Repo(d.refsHandler))
 		h(w, req)
 	case "log":
-		h := middleware.Repo(d.logHandler, d.Config, dReq)
+		h := middleware.Get(middleware.Repo(d.logHandler))
 		h(w, req)
 	case "commit":
-		h := middleware.Repo(d.commitHandler, d.Config, dReq)
+		h := middleware.Get(middleware.Repo(d.commitHandler))
 		h(w, req)
 	case "diff":
-		h := middleware.Repo(d.diffHandler, d.Config, dReq)
+		h := middleware.Get(middleware.Repo(d.diffHandler))
 		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)

@@ -18,6 +18,17 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
+func Get(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			fmt.Fprintln(w, "Method not allowed")
+			return
+		}
+		h(w, r)
+	}
+}
+
 func ResolveHead(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		repo := r.Context().Value("repo").(*repo.Repo)
@@ -34,15 +45,17 @@ func ResolveHead(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func Repos(h http.HandlerFunc, c config.Config) http.HandlerFunc {
+func Repos(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
+			c = r.Context().Value("cfg").(config.Config)
+
 			repos []*repo.Repo
 			err   error
 		)
 		if c.ProjectListPath == "" {
 			if repos, err = getRepos(c); err != nil {
-				log.Print("ERROR:", err)
+				log.Println("ERROR:", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintln(w, "Internal server error")
 				return
@@ -56,21 +69,26 @@ func Repos(h http.HandlerFunc, c config.Config) http.HandlerFunc {
 				return
 			}
 			if len(projects) == 0 {
-				log.Print("WARNING: project list empty")
+				log.Println("WARNING: project list empty")
 			}
 			repos = getFilteredRepos(c, projects)
 		}
 		if len(repos) == 0 {
-			log.Print("WARNING: no repositories found")
+			log.Println("WARNING: no repositories found")
 		}
 		newReq := r.WithContext(context.WithValue(r.Context(), "repos", repos))
 		h(w, newReq)
 	}
 }
 
-func Repo(h http.HandlerFunc, c config.Config, req *request.Request) http.HandlerFunc {
+func Repo(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var repo *repo.Repo
+		var (
+			c   = r.Context().Value("cfg").(config.Config)
+			req = r.Context().Value("dReq").(*request.Request)
+
+			repo *repo.Repo
+		)
 		repo = tryToOpenRepo(filepath.Join(c.RepoBasePath, req.Repo), c)
 		if repo != nil {
 			newReq := r.WithContext(context.WithValue(r.Context(), "repo", repo))
