@@ -85,6 +85,7 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, request.ErrMalformed):
+			log.Println("ERROR: bad request:", err)
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "Bad Request: %v", err)
 		case errors.Is(err, request.ErrUnknownSection):
@@ -118,6 +119,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h(w, req)
 	case "commit":
 		h := middleware.Repo(d.commitHandler, d.Config, dReq)
+		h(w, req)
+	case "diff":
+		h := middleware.Repo(d.diffHandler, d.Config, dReq)
 		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
@@ -197,7 +201,18 @@ func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	repo := r.Context().Value("repo").(*repo.Repo)
+	dReq := r.Context().Value("dReq").(*request.Request)
+	diffData, err := convert.ToDiffData(repo, dReq)
+	if err != nil {
+		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal server error")
+		return
+	}
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
+	t.ExecuteTemplate(w, "diff.tmpl", diffData)
 }
 
 func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {

@@ -18,11 +18,12 @@ var (
 )
 
 type Request struct {
-	Repo        string
-	Section     string
-	RefOrCommit string
-	Path        string
-	From        data.Hash
+	Repo             string
+	Section          string
+	RefOrCommit      string
+	Path             string
+	From             data.Hash
+	DiffFrom, DiffTo string
 }
 
 func Parse(url *url.URL) (*Request, error) {
@@ -68,9 +69,36 @@ func Parse(url *url.URL) (*Request, error) {
 		r.Section = splitPath[0]
 	}
 
+	if r.Section == "diff" {
+		ids := strings.Split(r.RefOrCommit, "..")
+		if len(ids) != 2 {
+			return nil, fmt.Errorf("%w: bad commit range: %s",
+				ErrMalformed, r.RefOrCommit)
+		}
+		r.RefOrCommit = ""
+		r.DiffFrom = ids[0]
+		r.DiffTo = ids[1]
+		return r, nil
+	}
+
 	r.From = data.Hash(url.Query().Get("from"))
 	if r.From != "" && r.Section != "log" {
 		return nil, fmt.Errorf("%w: 'from' in query not in 'log'", ErrMalformed)
 	}
+
+	switch r.Section {
+	case "refs":
+		if r.RefOrCommit != "" {
+			return nil, fmt.Errorf("%w: 'RefOrCommit' specified with '%s'",
+				ErrMalformed, r.Section)
+		}
+		fallthrough
+	case "log", "commit":
+		if r.Path != "" {
+			return nil, fmt.Errorf("%w: 'RefOrCommit' or 'Path' specified with '%s'",
+				ErrMalformed, r.Section)
+		}
+	}
+
 	return r, nil
 }

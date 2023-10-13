@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html prefix="
+        og: http://ogp.me/ns# article: http://ogp.me/ns/article#
+    " vocab="http://ogp.me/ns" lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="description" content="Daniel Moch's Git Repositories">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Git Index | Daniel Moch's Web Home</title>
+	<link href="https://www.danielmoch.com/assets/css/site.css" rel="stylesheet" type="text/css">
+	<meta name="theme-color" content="#155799">
+	<meta name="generator" content="DGit (git.danielmoch.com/dgit)">
+	<link rel="canonical" href="https://git.danielmoch.com/">
+	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="16x16">
+	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="32x32">
+	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="48x48">
+	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="64x64">
+	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="256x256">
+	<meta property="og:site_name" content="Daniel Moch's Git Repositories">
+	<meta property="og:title" content="Daniel Moch's Git Repositories">
+	<meta property="og:type" content="website">
+	<meta property="og:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
+	<meta name="twitter:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
+	<meta name="twitter:card" content="summary">
+</head>
+<body>
+	<header>
+		<nav>
+			<table>
+				<tr>
+					<td align="left">
+						<img src="https://www.danielmoch.com/assets/initials-blue.png" alt="Daniel Moch's Git Repositories">
+						<a href="https://www.danielmoch.com/">Home</a>
+						|
+						<a href="https://www.danielmoch.com/posts/">Posts</a>
+						|
+						<a href="/">Git</a>
+					</td>
+				</tr>
+			</table>
+		</nav>
+	</header>
+
+	<div id="main">
+		<h1 class="p-name">Diff</h1>
+		<h2 class="p-summary">from {{ .From }} to {{ .To }}</h2>
+		<h2>Diffstat</h2>
+		<pre><code>{{ .Diffstat }}</code></pre>
+		{{ range .FilePatches }}<h2>{{ .File }}</h2>
+		<pre><code>{{ . }}</code></pre>{{ end }}
+	</div>
+</body>
+</html>

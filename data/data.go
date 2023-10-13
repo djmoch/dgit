@@ -290,3 +290,10 @@ const (
 	Add
 	Delete
 )
+
+type DiffData struct {
+	Repo        string
+	From, To    string
+	Diffstat    string
+	FilePatches []FilePatch
+}

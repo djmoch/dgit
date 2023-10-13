@@ -51,7 +51,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 		}
 		readmes = make(map[string]plumbing.Hash)
 	)
-	hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
+	hash, err := toCommitHash(req.RefOrCommit, repo.R)
 	if err != nil {
 		return t, err
 	}
@@ -149,7 +149,7 @@ func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 			Path:        req.Path,
 		},
 	}
-	hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
+	hash, err := toCommitHash(req.RefOrCommit, repo.R)
 	if err != nil {
 		return b, err
 	}
@@ -247,7 +247,7 @@ func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 	}
 	l.FromHash = req.From
 	if req.From == "" {
-		hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
+		hash, err := toCommitHash(req.RefOrCommit, repo.R)
 		if err != nil {
 			return l, err
 		}
@@ -295,7 +295,7 @@ func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error
 		Repo:        repo.Slug,
 		RefOrCommit: req.RefOrCommit,
 	}
-	hash, err := refOrCommitToHash(req.RefOrCommit, repo.R)
+	hash, err := toCommitHash(req.RefOrCommit, repo.R)
 	if err != nil {
 		return c, err
 	}
@@ -361,6 +361,37 @@ func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error
 	return c, nil
 }
 
+func ToDiffData(repo *repo.Repo, req *request.Request) (data.DiffData, error) {
+	d := data.DiffData{
+		Repo: repo.Slug,
+		From: req.DiffFrom,
+		To:   req.DiffTo,
+	}
+	hash, err := repo.R.ResolveRevision(plumbing.Revision(req.DiffFrom))
+	if err != nil {
+		return d, fmt.Errorf("error resolving 'from' commit hash: %w", err)
+	}
+	fromCommit, err := repo.R.CommitObject(*hash)
+	if err != nil {
+		return d, fmt.Errorf("error resolving 'from' commit: %w", err)
+	}
+	hash, err = repo.R.ResolveRevision(plumbing.Revision(req.DiffTo))
+	if err != nil {
+		return d, fmt.Errorf("error resolving 'to' commit hash: %w", err)
+	}
+	toCommit, err := repo.R.CommitObject(*hash)
+	if err != nil {
+		return d, fmt.Errorf("error resolving 'to' commit: %w", err)
+	}
+	patch, err := fromCommit.Patch(toCommit)
+	if err != nil {
+		return d, fmt.Errorf("error generating patch: %w", err)
+	}
+	d.Diffstat = patch.Stats().String()
+	d.FilePatches = toFilePatches(patch.FilePatches())
+	return d, nil
+}
+
 func nextTree(tree *object.Tree, path string, repo *git.Repository) (*object.Tree, string, error) {
 	var (
 		found = false
@@ -406,25 +437,12 @@ func readBlob(hash plumbing.Hash, repo *git.Repository) (data.Blob, error) {
 	return blob, nil
 }
 
-func refOrCommitToHash(refOrCommit string, repo *git.Repository) (plumbing.Hash, error) {
-	if plumbing.IsHash(refOrCommit) {
-		return plumbing.NewHash(refOrCommit), nil
-	}
-	branch, err := repo.Reference(plumbing.ReferenceName(path.Join("refs", "heads", refOrCommit)), false)
-	if err == nil {
-		return branch.Hash(), nil
-	}
-	tag, err := repo.Tag(refOrCommit)
+func toCommitHash(rev string, repo *git.Repository) (plumbing.Hash, error) {
+	hash, err := repo.ResolveRevision(plumbing.Revision(rev))
 	if err != nil {
-		return plumbing.NewHash(""),
-			fmt.Errorf("failed to resolve ref: %s", refOrCommit)
+		return plumbing.NewHash(""), fmt.Errorf("failed to resolve revision: %s", rev)
 	}
-
-	tObject, err := repo.TagObject(tag.Hash())
-	if err != nil {
-		return tag.Hash(), nil
-	}
-	return tObject.Target, nil
+	return *hash, nil
 }
 
 func toFilePatches(dPatches []diff.FilePatch) []data.FilePatch {
