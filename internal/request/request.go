@@ -20,7 +20,7 @@ var (
 type Request struct {
 	Repo             string
 	Section          string
-	RefOrCommit      string
+	Revision         string
 	Path             string
 	From             data.Hash
 	DiffFrom, DiffTo string
@@ -63,19 +63,19 @@ func Parse(url *url.URL) (*Request, error) {
 		r.Path = strings.Join(splitPath[2:], "/")
 		fallthrough
 	case 2:
-		r.RefOrCommit = splitPath[1]
+		r.Revision = splitPath[1]
 		fallthrough
 	case 1:
 		r.Section = splitPath[0]
 	}
 
 	if r.Section == "diff" {
-		ids := strings.Split(r.RefOrCommit, "..")
+		ids := strings.Split(r.Revision, "..")
 		if len(ids) != 2 {
 			return nil, fmt.Errorf("%w: bad commit range: %s",
-				ErrMalformed, r.RefOrCommit)
+				ErrMalformed, r.Revision)
 		}
-		r.RefOrCommit = ""
+		r.Revision = ""
 		r.DiffFrom = ids[0]
 		r.DiffTo = ids[1]
 		return r, nil
@@ -88,14 +88,14 @@ func Parse(url *url.URL) (*Request, error) {
 
 	switch r.Section {
 	case "refs":
-		if r.RefOrCommit != "" {
-			return nil, fmt.Errorf("%w: 'RefOrCommit' specified with '%s'",
+		if r.Revision != "" {
+			return nil, fmt.Errorf("%w: 'Revision' specified with '%s'",
 				ErrMalformed, r.Section)
 		}
 		fallthrough
 	case "log", "commit":
 		if r.Path != "" {
-			return nil, fmt.Errorf("%w: 'RefOrCommit' or 'Path' specified with '%s'",
+			return nil, fmt.Errorf("%w: 'Revision' or 'Path' specified with '%s'",
 				ErrMalformed, r.Section)
 		}
 	}

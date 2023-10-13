@@ -10,9 +10,9 @@ import (
 func TestPathElems(t *testing.T) {
 	var (
 		d = &RequestData{
-			Repo:        "testRepo",
-			RefOrCommit: "main",
-			Path:        "test/path/to/file",
+			Repo:     "testRepo",
+			Revision: "main",
+			Path:     "test/path/to/file",
 		}
 	)
 	elems := d.PathElems()
@@ -22,8 +22,8 @@ func TestPathElems(t *testing.T) {
 	if elems[0].Repo != "testRepo" {
 		t.Error(fmt.Sprintf("expected testRepo, but got %s", elems[0].Repo))
 	}
-	if elems[0].RefOrCommit != "main" {
-		t.Error(fmt.Sprintf("expected main, but got %s", elems[0].RefOrCommit))
+	if elems[0].Revision != "main" {
+		t.Error(fmt.Sprintf("expected main, but got %s", elems[0].Revision))
 	}
 	if elems[0].Path != "/test" {
 		t.Error(fmt.Sprintf("expected /test, but got %s", elems[0].Path))

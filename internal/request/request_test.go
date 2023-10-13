@@ -30,18 +30,18 @@ func TestParse(t *testing.T) {
 		{
 			url: mustParse("/testRepo/-/tree/master"),
 			req: &Request{
-				Repo:        "testRepo",
-				Section:     "tree",
-				RefOrCommit: "master",
+				Repo:     "testRepo",
+				Section:  "tree",
+				Revision: "master",
 			},
 		},
 		{
 			url: mustParse("/testRepo/-/tree/master/test/path"),
 			req: &Request{
-				Repo:        "testRepo",
-				Section:     "tree",
-				RefOrCommit: "master",
-				Path:        "test/path",
+				Repo:     "testRepo",
+				Section:  "tree",
+				Revision: "master",
+				Path:     "test/path",
 			},
 		},
 		{
@@ -73,8 +73,8 @@ func TestParse(t *testing.T) {
 		if req.Section != entry.req.Section {
 			t.Fatal("Repo: exp=", entry.req.Section, ", act=", req.Section)
 		}
-		if req.RefOrCommit != entry.req.RefOrCommit {
-			t.Fatal("Repo: exp=", entry.req.RefOrCommit, ", act=", req.RefOrCommit)
+		if req.Revision != entry.req.Revision {
+			t.Fatal("Repo: exp=", entry.req.Revision, ", act=", req.Revision)
 		}
 		if req.Path != entry.req.Path {
 			t.Fatal("Repo: exp=", entry.req.Path, ", act=", req.Path)
@@ -94,7 +94,7 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func TestRefsWithRefOrCommit(t *testing.T) {
+func TestRefsWithRevision(t *testing.T) {
 	_, err := Parse(mustParse("/testRepo/-/refs/bad"))
 	if !errors.Is(err, ErrMalformed) {
 		t.Fatal("expected malformed request")

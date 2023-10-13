@@ -44,14 +44,14 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 	var (
 		t = data.TreeData{
 			RequestData: data.RequestData{
-				Repo:        repo.Slug,
-				Path:        req.Path,
-				RefOrCommit: req.RefOrCommit,
+				Repo:     repo.Slug,
+				Path:     req.Path,
+				Revision: req.Revision,
 			},
 		}
 		readmes = make(map[string]plumbing.Hash)
 	)
-	hash, err := toCommitHash(req.RefOrCommit, repo.R)
+	hash, err := toCommitHash(req.Revision, repo.R)
 	if err != nil {
 		return t, err
 	}
@@ -104,7 +104,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 			Mode: mode,
 			Hash: entry.Hash.String(),
 			Href: path.Clean(fmt.Sprintf("/%s/-/%s/%s/%s/%s", repo.Slug, hrefSection,
-				t.RefOrCommit, req.Path, entry.Name)),
+				t.Revision, req.Path, entry.Name)),
 		}
 		t.Tree.Entries[i] = te
 		switch entry.Name {
@@ -144,12 +144,12 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 	b := data.BlobData{
 		RequestData: data.RequestData{
-			Repo:        repo.Slug,
-			RefOrCommit: req.RefOrCommit,
-			Path:        req.Path,
+			Repo:     repo.Slug,
+			Revision: req.Revision,
+			Path:     req.Path,
 		},
 	}
-	hash, err := toCommitHash(req.RefOrCommit, repo.R)
+	hash, err := toCommitHash(req.Revision, repo.R)
 	if err != nil {
 		return b, err
 	}
@@ -241,13 +241,13 @@ func ToRefsData(repo *repo.Repo) (data.RefsData, error) {
 
 func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 	l := data.LogData{
-		Repo:        repo.Slug,
-		RefOrCommit: req.RefOrCommit,
-		Commits:     make([]data.Commit, 0, data.LogPageSize),
+		Repo:     repo.Slug,
+		Revision: req.Revision,
+		Commits:  make([]data.Commit, 0, data.LogPageSize),
 	}
 	l.FromHash = req.From
 	if req.From == "" {
-		hash, err := toCommitHash(req.RefOrCommit, repo.R)
+		hash, err := toCommitHash(req.Revision, repo.R)
 		if err != nil {
 			return l, err
 		}
@@ -292,10 +292,10 @@ func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 
 func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error) {
 	c := data.CommitData{
-		Repo:        repo.Slug,
-		RefOrCommit: req.RefOrCommit,
+		Repo:     repo.Slug,
+		Revision: req.Revision,
 	}
-	hash, err := toCommitHash(req.RefOrCommit, repo.R)
+	hash, err := toCommitHash(req.Revision, repo.R)
 	if err != nil {
 		return c, err
 	}

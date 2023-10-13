@@ -42,7 +42,7 @@ type RequestData struct {
 	// The repository slug, i.e., the URL path up to the - path element.
 	Repo string
 	// The base name of the Git reference, or the commit hash.
-	RefOrCommit string
+	Revision string
 	// The path of the tree within the repository.
 	Path string
 }
@@ -51,7 +51,7 @@ type RequestData struct {
 // in [RequestData.Path]. This is useful to build a breadcrumb, which
 // might look like:
 //
-//	{{ for range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit }}{{ .Path }}">{{ .Base }}</a>/{{ end }}
+//	{{ for range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision }}{{ .Path }}">{{ .Base }}</a>/{{ end }}
 func (r RequestData) PathElems() []PathElem {
 	var (
 		splitPath = strings.Split(string(r.Path), "/")
@@ -61,10 +61,10 @@ func (r RequestData) PathElems() []PathElem {
 	for i := 0; i < len(splitPath)-1; i += 1 {
 		sp.WriteString("/" + splitPath[i])
 		elem := PathElem{
-			Repo:        r.Repo,
-			RefOrCommit: r.RefOrCommit,
-			Path:        sp.String(),
-			Base:        splitPath[i],
+			Repo:     r.Repo,
+			Revision: r.Revision,
+			Path:     sp.String(),
+			Base:     splitPath[i],
 		}
 		elems[i] = elem
 	}
@@ -79,10 +79,10 @@ func (r RequestData) PathBase() string {
 }
 
 type PathElem struct {
-	Repo        string
-	RefOrCommit string
-	Path        string
-	Base        string
+	Repo     string
+	Revision string
+	Path     string
+	Base     string
 }
 
 // TreeData extends [RequestData] and is provided to the head and tree
@@ -228,11 +228,11 @@ type Reference struct {
 // LogData is provided to the log template when executed and becomes
 // dot within the template.
 type LogData struct {
-	Repo        string
-	RefOrCommit string
-	FromHash    Hash
-	Commits     []Commit
-	NextPage    Hash
+	Repo     string
+	Revision string
+	FromHash Hash
+	Commits  []Commit
+	NextPage Hash
 }
 
 func (l LogData) HasNext() bool {
@@ -241,7 +241,7 @@ func (l LogData) HasNext() bool {
 
 type CommitData struct {
 	Repo        string
-	RefOrCommit string
+	Revision    string
 	Commit      Commit
 	Diffstat    string
 	FilePatches []FilePatch

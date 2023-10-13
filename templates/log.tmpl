@@ -46,7 +46,7 @@
 		<h1 class="p-name">Log</h1>
 		<h2 class="p-summary">
 			at
-			<a href="/{{ .Repo }}/-/tree/{{ .RefOrCommit }}">{{ .RefOrCommit }}</a>
+			<a href="/{{ .Repo }}/-/tree/{{ .Revision }}">{{ .Revision }}</a>
 			 in
 			<a href="/{{ .Repo }}">{{ .Repo }}</a>
 			&ndash;
@@ -61,7 +61,7 @@
 		{{- range .Commits }}
 		<tr><td>{{ .Time.Format "01/02/06" }}</td><td><a href="../commit/{{ .Hash }}">{{ .Hash.Short }}</a></td><td>{{ .Message }}</td></tr>{{ end }}
 		</table>
-		{{ if .HasNext }}<a href="{{ .RefOrCommit }}?from={{ .NextPage }}">More ...</a>{{ end }}
+		{{ if .HasNext }}<a href="{{ .Revision }}?from={{ .NextPage }}">More ...</a>{{ end }}
 	</div>
 </body>
 </html>

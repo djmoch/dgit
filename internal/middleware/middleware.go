@@ -26,9 +26,9 @@ func ResolveHead(h http.HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			head = plumbing.NewReferenceFromStrings("", "")
 		}
-		dReq.RefOrCommit = path.Base(string(head.Name()))
-		if dReq.RefOrCommit == "." {
-			dReq.RefOrCommit = ""
+		dReq.Revision = path.Base(string(head.Name()))
+		if dReq.Revision == "." {
+			dReq.Revision = ""
 		}
 		h(w, r)
 	}

@@ -133,7 +133,7 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 	repo := r.Context().Value("repo").(*repo.Repo)
 	dReq := r.Context().Value("dReq").(*request.Request)
-	if dReq.RefOrCommit == "" {
+	if dReq.Revision == "" {
 		t := template.Must(template.New("templates").Funcs(funcMap).
 			ParseFS(templates, "templates/*.tmpl"))
 		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
