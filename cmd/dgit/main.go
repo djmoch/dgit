@@ -16,9 +16,10 @@ import (
 	"djmo.ch/dgit/cmd/dgit/internal/help"
 	"djmo.ch/dgit/cmd/dgit/internal/serve"
 	"djmo.ch/dgit/cmd/dgit/internal/version"
+	"djmo.ch/dgit/config"
 )
 
-var osInit func()
+var osInit func(config.Config)
 
 func init() {
 	base.DGit.Subcommands = []*base.Command{
@@ -36,11 +37,8 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	if osInit != nil {
-		osInit()
-	}
-
 	env.MergeEnv()
+	cfg := env.ConfigFromEnv()
 
 	args := flag.Args()
 	if len(args) < 1 {
@@ -51,7 +49,11 @@ func main() {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "args", args[1:])
 	ctx = context.WithValue(ctx, "w", os.Stdout)
-	ctx = context.WithValue(ctx, "cfg", env.ConfigFromEnv())
+	ctx = context.WithValue(ctx, "cfg", cfg)
+
+	if osInit != nil {
+		osInit(cfg)
+	}
 
 	if args[0] == "help" {
 		help.Help(ctx)
