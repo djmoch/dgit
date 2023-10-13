@@ -31,7 +31,12 @@ func Get(h http.HandlerFunc) http.HandlerFunc {
 
 func ResolveHead(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		repo := r.Context().Value("repo").(*repo.Repo)
+		ctxRepo := r.Context().Value("repo")
+		if ctxRepo == nil {
+			h(w, r)
+			return
+		}
+		repo := ctxRepo.(*repo.Repo)
 		dReq := r.Context().Value("dReq").(*request.Request)
 		head, err := repo.R.Head()
 		if err != nil {
@@ -109,8 +114,7 @@ func Repo(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		}
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintln(w, "repository not found:", req.Repo)
+		h(w, r)
 	}
 }
 

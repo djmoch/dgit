@@ -129,12 +129,17 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "Bad Request")
+		displayError(w, "Bad Request")
 	}
 }
 
 func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		displayError(w, "Repo not found")
+		return
+	}
 	dReq := r.Context().Value("dReq").(*request.Request)
 	if dReq.Revision == "" {
 		t := template.Must(template.New("templates").Funcs(funcMap).
@@ -148,15 +153,15 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	treeData, err := convert.ToTreeData(repo, dReq)
 	if err != nil {
-		if errors.Is(err, convert.ErrTreeNotFound) {
+		if errors.Is(err, convert.ErrDirectoryNotFound) {
 			log.Println(err)
 			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "Not found")
+			displayError(w, "Not found")
 			return
 		}
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
+		displayError(w, "Internal server error")
 		return
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
@@ -165,13 +170,18 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		displayError(w, "Repo not found")
+		return
+	}
 	dReq := r.Context().Value("dReq").(*request.Request)
 	logData, err := convert.ToLogData(repo, dReq)
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
+		displayError(w, "Internal server error")
 		return
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
@@ -189,13 +199,18 @@ func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		displayError(w, "Repo not found")
+		return
+	}
 	dReq := r.Context().Value("dReq").(*request.Request)
 	commitData, err := convert.ToCommitData(repo, dReq)
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
+		displayError(w, "Internal server error")
 		return
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
@@ -204,13 +219,18 @@ func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		displayError(w, "Repo not found")
+		return
+	}
 	dReq := r.Context().Value("dReq").(*request.Request)
 	diffData, err := convert.ToDiffData(repo, dReq)
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
+		displayError(w, "Internal server error")
 		return
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
@@ -219,19 +239,24 @@ func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		displayError(w, "Repo not found")
+		return
+	}
 	dReq := r.Context().Value("dReq").(*request.Request)
 	treeData, err := convert.ToBlobData(repo, dReq)
 	if err != nil {
-		if errors.Is(err, convert.ErrBlobNotFound) {
+		if errors.Is(err, convert.ErrFileNotFound) {
 			log.Println(err)
 			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "Not found")
+			displayError(w, "Not found")
 			return
 		}
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
+		displayError(w, "Internal server error")
 		return
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
@@ -240,17 +265,37 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
-	repo := r.Context().Value("repo").(*repo.Repo)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		displayError(w, "Repo not found")
+		return
+	}
 	refsData, err := convert.ToRefsData(repo)
 	sort.Sort(sort.Reverse(convert.ByAge(refsData.Branches)))
 	sort.Sort(sort.Reverse(convert.ByAge(refsData.Tags)))
 	if err != nil {
 		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal server error")
+		displayError(w, "Internal server error")
 		return
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(templates, "templates/*.tmpl"))
 	t.ExecuteTemplate(w, "refs.tmpl", refsData)
+}
+
+func displayError(w http.ResponseWriter, msg string) {
+	t := template.Must(template.New("templates").Funcs(funcMap).
+		ParseFS(templates, "templates/*.tmpl"))
+	t.ExecuteTemplate(w, "error.tmpl", struct{ Message string }{Message: msg})
+}
+
+func getRepo(r *http.Request) *repo.Repo {
+	ctxRepo := r.Context().Value("repo")
+	if ctxRepo == nil {
+		return nil
+	}
+	re := ctxRepo.(*repo.Repo)
+	return re
 }

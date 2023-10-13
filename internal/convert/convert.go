@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	ErrTreeNotFound = errors.New("tree not found")
-	ErrBlobNotFound = errors.New("blob not found")
+	ErrDirectoryNotFound = errors.New("directory not found")
+	ErrFileNotFound      = errors.New("file not found")
 )
 
 func ToIndexData(repos []*repo.Repo) data.IndexData {
@@ -65,15 +65,18 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 	t.Commit.Message = c.Message
 	gitTree, err := repo.R.TreeObject(c.TreeHash)
 	if err != nil {
-		return t, fmt.Errorf("error resolving tree: %w", err)
+		return t, fmt.Errorf("error resolving commit tree: %w", err)
 	}
-	p := req.Path
-	for p != "" && p != "/" {
-		gitTree, p, err = nextTree(gitTree, p, repo.R)
+	if req.Path != "/" && req.Path != "" {
+		gitTree, err = gitTree.Tree(req.Path)
 		if err != nil {
-			return t, err
+			if errors.Is(err, object.ErrDirectoryNotFound) {
+				return t, fmt.Errorf("%w: %s", ErrDirectoryNotFound, req.Path)
+			}
+			return t, fmt.Errorf("error resolving tree: %s", err)
 		}
 	}
+
 	t.Tree.Hash = c.TreeHash.String()
 	t.Tree.Entries = make([]data.TreeEntry, len(gitTree.Entries), len(gitTree.Entries))
 	for i, entry := range gitTree.Entries {
@@ -161,28 +164,18 @@ func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 	b.Commit.Author = c.Author.Name
 	b.Commit.Committer = c.Committer.Name
 	b.Commit.Message = c.Message
-	gitTree, err := repo.R.TreeObject(c.TreeHash)
+	f, err := c.File(req.Path)
 	if err != nil {
-		return b, fmt.Errorf("error resolving tree: %w", err)
-	}
-	p := req.Path
-	p, _ = strings.CutSuffix(p, "/")
-	for strings.Contains(p, "/") {
-		gitTree, p, err = nextTree(gitTree, p, repo.R)
-		if err != nil {
-			return b, err
+		if errors.Is(err, object.ErrFileNotFound) {
+			return b, fmt.Errorf("%w: %s", ErrFileNotFound, req.Path)
 		}
+		return b, fmt.Errorf("error resolving file: %w", err)
 	}
-
-	baseName := path.Base(req.Path)
-	for _, entry := range gitTree.Entries {
-		if entry.Name == baseName {
-			b.Blob, err = readBlob(entry.Hash, repo.R)
-			if err != nil {
-				return b, err
-			}
-			break
-		}
+	b.Blob.Hash = f.Hash.String()
+	b.Blob.Size = f.Size
+	b.Blob.Contents, err = f.Contents()
+	if err != nil {
+		return b, err
 	}
 	return b, nil
 }
@@ -390,30 +383,6 @@ func ToDiffData(repo *repo.Repo, req *request.Request) (data.DiffData, error) {
 	d.Diffstat = patch.Stats().String()
 	d.FilePatches = toFilePatches(patch.FilePatches())
 	return d, nil
-}
-
-func nextTree(tree *object.Tree, path string, repo *git.Repository) (*object.Tree, string, error) {
-	var (
-		found = false
-		p     = path
-
-		err error
-	)
-	for _, entry := range tree.Entries {
-		if entry.Mode == filemode.Dir && strings.HasPrefix(path, entry.Name) {
-			found = true
-			p, _ = strings.CutPrefix(p, entry.Name)
-			p, _ = strings.CutPrefix(p, "/")
-			tree, err = repo.TreeObject(entry.Hash)
-			if err != nil {
-				return nil, "", fmt.Errorf("error resolving tree: %w", err)
-			}
-		}
-	}
-	if !found {
-		return nil, "", fmt.Errorf("error locating tree %s: %w", path, ErrTreeNotFound)
-	}
-	return tree, p, nil
 }
 
 func readBlob(hash plumbing.Hash, repo *git.Repository) (data.Blob, error) {
