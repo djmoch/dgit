@@ -20,8 +20,8 @@ type IndexData struct {
 	Repos []*Repo
 }
 
-// IndexRepo is a single element of [IndexData] and contains data for
-// a single repository.
+// Repo is a single element of [IndexData] and contains data for a
+// single repository.
 type Repo struct {
 	// Slug is the URL path to the repository, relative to the
 	// DGit root URL.
@@ -39,8 +39,8 @@ type Repo struct {
 }
 
 type RequestData struct {
-	// The repository slug, i.e., the URL path up to the - path element.
-	Repo string
+	// The repository
+	Repo Repo
 	// The base name of the Git reference, or the commit hash.
 	Revision string
 	// The path of the tree within the repository.
@@ -61,7 +61,7 @@ func (r RequestData) PathElems() []PathElem {
 	for i := 0; i < len(splitPath)-1; i += 1 {
 		sp.WriteString("/" + splitPath[i])
 		elem := PathElem{
-			Repo:     r.Repo,
+			Repo:     r.Repo.Slug,
 			Revision: r.Revision,
 			Path:     sp.String(),
 			Base:     splitPath[i],
@@ -215,7 +215,7 @@ type Blob struct {
 // RefsData is provided to the refs template when executed and becomes
 // dot within the template.
 type RefsData struct {
-	Repo     string
+	Repo     Repo
 	Branches []Reference
 	Tags     []Reference
 }
@@ -228,7 +228,7 @@ type Reference struct {
 // LogData is provided to the log template when executed and becomes
 // dot within the template.
 type LogData struct {
-	Repo     string
+	Repo     Repo
 	Revision string
 	FromHash Hash
 	Commits  []Commit
@@ -240,7 +240,7 @@ func (l LogData) HasNext() bool {
 }
 
 type CommitData struct {
-	Repo        string
+	Repo        Repo
 	Revision    string
 	Commit      Commit
 	Diffstat    string
@@ -292,7 +292,7 @@ const (
 )
 
 type DiffData struct {
-	Repo        string
+	Repo        Repo
 	From, To    string
 	Diffstat    string
 	FilePatches []FilePatch

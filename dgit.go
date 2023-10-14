@@ -146,7 +146,7 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 			ParseFS(templates, "templates/*.tmpl"))
 		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
 			RequestData: data.RequestData{
-				Repo: repo.Slug,
+				Repo: data.Repo{Slug: repo.Slug},
 			},
 		})
 		return

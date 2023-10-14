@@ -11,17 +11,16 @@
 	<link href="https://www.danielmoch.com/assets/css/site.css" rel="stylesheet" type="text/css">
 	<meta name="theme-color" content="#155799">
 	<meta name="generator" content="DGit (git.danielmoch.com/dgit)">
-	<link rel="canonical" href="https://git.danielmoch.com/">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="16x16">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="32x32">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="48x48">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="64x64">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="256x256">
 	<meta property="og:site_name" content="Daniel Moch's Git Repositories">
-	<meta property="og:title" content="{{ .Repo }}">
+	<meta property="og:title" content="{{ .Repo.Slug }}">
 	<meta property="og:type" content="object">
 	<meta property="og:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
-	<meta name="twitter:title" content="{{ .Repo }}">
+	<meta name="twitter:title" content="{{ .Repo.Slug }}">
 	<meta name="twitter:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
 	<meta name="twitter:card" content="summary">
 </head>
@@ -47,11 +46,11 @@
 		<h1 class="p-name">Log</h1>
 		<h2 class="p-summary">
 			at
-			<a href="/{{ .Repo }}/-/tree/{{ .Revision }}">{{ .Revision }}</a>
+			<a href="/{{ .Repo.Slug }}/-/tree/{{ .Revision }}">{{ .Revision }}</a>
 			 in
-			<a href="/{{ .Repo }}">{{ .Repo }}</a>
+			<a href="/{{ .Repo.Slug }}">{{ .Repo.Slug }}</a>
 			&ndash;
-			<a href="/{{ .Repo }}/-/refs">Refs</a></h2>
+			<a href="/{{ .Repo.Slug }}/-/refs">Refs</a></h2>
 		</h2>
 		<table style="text-align: left">
 		<colgroup>

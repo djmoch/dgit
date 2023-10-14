@@ -7,21 +7,20 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="description" content="Daniel Moch's Git Repositories">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>{{ if ne .Path "" }}{{ .Path }} | {{end}}{{ .Repo }}</title>
+	<title>{{ .Repo.Slug }}{{ if and (eq .Path "") (ne .Repo.Description "") }}: {{ .Repo.Description }}{{end}}</title>
 	<link href="https://www.danielmoch.com/assets/css/site.css" rel="stylesheet" type="text/css">
 	<meta name="theme-color" content="#155799">
 	<meta name="generator" content="DGit (git.danielmoch.com/dgit)">
-	<link rel="canonical" href="https://git.danielmoch.com/">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="16x16">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="32x32">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="48x48">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="64x64">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="256x256">
 	<meta property="og:site_name" content="Daniel Moch's Git Repositories">
-	<meta property="og:title" content="{{ .Repo }}">
+	<meta property="og:title" content="{{ .Repo.Slug }}">
 	<meta property="og:type" content="object">
 	<meta property="og:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
-	<meta name="twitter:title" content="{{ .Repo }}">
+	<meta name="twitter:title" content="{{ .Repo.Slug }}">
 	<meta name="twitter:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
 	<meta name="twitter:card" content="summary">
 </head>
@@ -44,12 +43,12 @@
 	</header>
 
 	<div id="main">
-		<h1 class="p-name">{{ if (and (ne .Path "") (ne .Path "/")) }}{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo }}">{{ .Repo }}</a>{{ else }}{{ .Repo }}{{ end }}</h1>
+		<h1 class="p-name">{{ if (and (ne .Path "") (ne .Path "/")) }}{{ range .PathElems }}<a href="/{{ .Repo.Slug }}/-/tree/{{ .Revision}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo.Slug }}">{{ .Repo.Slug }}</a>{{ else }}{{ .Repo.Slug }}{{ end }}</h1>
 		{{ if .IsEmpty }}<p>Repository is empty</p>
 		{{ else }}<h2 class="p-summary">at {{ .Revision }}
 		&ndash;
-		<a href="/{{ .Repo }}/-/log/{{ .Revision}}">Log</a>
-		<a href="/{{ .Repo }}/-/refs">Refs</a></h2>
+		<a href="/{{ .Repo.Slug }}/-/log/{{ .Revision}}">Log</a>
+		<a href="/{{ .Repo.Slug }}/-/refs">Refs</a></h2>
 		<table style="text-align: left">
 		<colgroup>
 			<col span="1" style="width: 25%;">

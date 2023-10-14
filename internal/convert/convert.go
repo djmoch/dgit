@@ -29,13 +29,8 @@ var (
 func ToIndexData(repos []*repo.Repo) data.IndexData {
 	d := data.IndexData{Repos: make([]*data.Repo, len(repos), len(repos))}
 	for i, repo := range repos {
-		ir := &data.Repo{
-			Slug:         repo.Slug,
-			Owner:        repo.Owner,
-			Description:  repo.Description,
-			LastModified: repo.LastModified,
-		}
-		d.Repos[i] = ir
+		ir := toDataRepo(repo)
+		d.Repos[i] = &ir
 	}
 	return d
 }
@@ -44,7 +39,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 	var (
 		t = data.TreeData{
 			RequestData: data.RequestData{
-				Repo:     repo.Slug,
+				Repo:     toDataRepo(repo),
 				Path:     req.Path,
 				Revision: req.Revision,
 			},
@@ -147,7 +142,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 	b := data.BlobData{
 		RequestData: data.RequestData{
-			Repo:     repo.Slug,
+			Repo:     toDataRepo(repo),
 			Revision: req.Revision,
 			Path:     req.Path,
 		},
@@ -182,7 +177,7 @@ func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 
 func ToRefsData(repo *repo.Repo) (data.RefsData, error) {
 	r := data.RefsData{
-		Repo: repo.Slug,
+		Repo: toDataRepo(repo),
 		Tags: make([]data.Reference, 0, 0),
 	}
 	// TODO(dmoch): repo.R.References() might be cleaner
@@ -234,7 +229,7 @@ func ToRefsData(repo *repo.Repo) (data.RefsData, error) {
 
 func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 	l := data.LogData{
-		Repo:     repo.Slug,
+		Repo:     toDataRepo(repo),
 		Revision: req.Revision,
 		Commits:  make([]data.Commit, 0, data.LogPageSize),
 	}
@@ -285,7 +280,7 @@ func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 
 func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error) {
 	c := data.CommitData{
-		Repo:     repo.Slug,
+		Repo:     toDataRepo(repo),
 		Revision: req.Revision,
 	}
 	hash, err := toCommitHash(req.Revision, repo.R)
@@ -356,7 +351,7 @@ func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error
 
 func ToDiffData(repo *repo.Repo, req *request.Request) (data.DiffData, error) {
 	d := data.DiffData{
-		Repo: repo.Slug,
+		Repo: toDataRepo(repo),
 		From: req.DiffFrom,
 		To:   req.DiffTo,
 	}
@@ -443,4 +438,13 @@ func toFilePatches(dPatches []diff.FilePatch) []data.FilePatch {
 		patches[i] = p
 	}
 	return patches
+}
+
+func toDataRepo(repo *repo.Repo) data.Repo {
+	return data.Repo{
+		Slug:         repo.Slug,
+		Owner:        repo.Owner,
+		Description:  repo.Description,
+		LastModified: repo.LastModified,
+	}
 }

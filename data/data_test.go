@@ -10,7 +10,7 @@ import (
 func TestPathElems(t *testing.T) {
 	var (
 		d = &RequestData{
-			Repo:     "testRepo",
+			Repo:     Repo{Slug: "testRepo"},
 			Revision: "main",
 			Path:     "test/path/to/file",
 		}

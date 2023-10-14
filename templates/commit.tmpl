@@ -7,21 +7,20 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="description" content="Daniel Moch's Git Repositories">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Commit | {{ .Repo }}</title>
+	<title>Commit | {{ .Repo.Slug }}</title>
 	<link href="https://www.danielmoch.com/assets/css/site.css" rel="stylesheet" type="text/css">
 	<meta name="theme-color" content="#155799">
 	<meta name="generator" content="DGit (git.danielmoch.com/dgit)">
-	<link rel="canonical" href="https://git.danielmoch.com/">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="16x16">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="32x32">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="48x48">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="64x64">
 	<link rel="icon" href="https://www.danielmoch.com/favicon.ico" sizes="256x256">
 	<meta property="og:site_name" content="Daniel Moch's Git Repositories">
-	<meta property="og:title" content="{{ .Repo }}">
+	<meta property="og:title" content="{{ .Repo.Slug }}">
 	<meta property="og:type" content="object">
 	<meta property="og:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
-	<meta name="twitter:title" content="{{ .Repo }}">
+	<meta name="twitter:title" content="{{ .Repo.Slug }}">
 	<meta name="twitter:image" content="https://www.danielmoch.com/assets/initials-blue.jpg">
 	<meta name="twitter:card" content="summary">
 </head>
@@ -47,7 +46,7 @@
 		<h1 class="p-name">Commit</h1>
 		<pre><code>{{ .Commit.Message }}</code></pre>
 		{{ .Commit.Committer }} committed {{ Humanize .Commit.Time }}
-		(<a href="/{{ .Repo }}/-/tree/{{ .Revision }}">Tree</a>)
+		(<a href="/{{ .Repo.Slug }}/-/tree/{{ .Revision }}">Tree</a>)
 		<h2>Diffstat</h2>
 		<pre><code>{{ .Diffstat }}</code></pre>
 		{{ range .FilePatches }}<h2>{{ .File }}</h2>
