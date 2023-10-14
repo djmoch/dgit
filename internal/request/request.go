@@ -17,6 +17,8 @@ var (
 	ErrUnknownSection = errors.New("request for unknown Section")
 )
 
+const Sections = "head tree blob diff refs log commit"
+
 type Request struct {
 	Repo             string
 	Section          string
