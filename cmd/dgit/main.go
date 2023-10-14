@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"flag"
 	"fmt"
 	"log"
@@ -19,7 +20,12 @@ import (
 	"djmo.ch/dgit/config"
 )
 
-var osInit func(config.Config)
+var (
+	//go:embed templates/*.tmpl
+	templates embed.FS
+
+	osInit func(config.Config)
+)
 
 func init() {
 	base.DGit.Subcommands = []*base.Command{
@@ -39,6 +45,7 @@ func main() {
 
 	env.MergeEnv()
 	cfg := env.ConfigFromEnv()
+	cfg.Templates = templates
 
 	args := flag.Args()
 	if len(args) < 1 {

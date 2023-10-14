@@ -3,6 +3,8 @@
 // Package config implements DGit configuration data types
 package config
 
+import "embed"
+
 // Config contains all global configuration required by DGit.
 type Config struct {
 	// RepoBasePath is the base path to the repository tree. This
@@ -22,4 +24,22 @@ type Config struct {
 	// true will also remove a trailing .git directory from the
 	// URL if it exists in the path.
 	RemoveSuffix bool
+
+	// Templates is an [embed.FS] that contains the HTML template
+	// files (see [html/template]). The templates must live inside
+	// the FS in a "templates" directory. File names end in .tmpl
+	// and are named based on their section. There is no "head"
+	// template as this re-uses the "tree" template. There is also
+	// an error template to handle errors.
+	//
+	// The full list of required template files is:
+	//  - blob.tmpl
+	//  - commit.tmpl
+	//  - diff.tmpl
+	//  - error.tmpl
+	//  - index.tmpl
+	//  - log.tmpl
+	//  - refs.tmpl
+	//  - tree.tmpl
+	Templates embed.FS
 }

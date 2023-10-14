@@ -130,11 +130,11 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 		if ok {
 			hash = tmp
 		}
-		rBlob, err := readBlob(hash, repo.R)
+		contents, err := readBlobContents(hash, repo.R)
 		if err != nil {
 			return t, err
 		}
-		t.Readme = rBlob.Contents
+		t.Readme = contents
 	}
 	return t, nil
 }
@@ -168,10 +168,11 @@ func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 	}
 	b.Blob.Hash = f.Hash.String()
 	b.Blob.Size = f.Size
-	b.Blob.Contents, err = f.Contents()
+	lines, err := f.Lines()
 	if err != nil {
-		return b, err
+		return b, fmt.Errorf("error getting file lines: %w", err)
 	}
+	b.Blob.Lines = toBlobLines(lines)
 	return b, nil
 }
 
@@ -380,25 +381,21 @@ func ToDiffData(repo *repo.Repo, req *request.Request) (data.DiffData, error) {
 	return d, nil
 }
 
-func readBlob(hash plumbing.Hash, repo *git.Repository) (data.Blob, error) {
-	var blob data.Blob
+func readBlobContents(hash plumbing.Hash, repo *git.Repository) (string, error) {
 	b, err := repo.BlobObject(hash)
 	if err != nil {
-		return blob, fmt.Errorf("error resolving blob %s: %w", hash, err)
+		return "", fmt.Errorf("error resolving blob %s: %w", hash, err)
 	}
 	breader, err := b.Reader()
 	if err != nil {
-		return blob, fmt.Errorf("error opening blob %s: %w", hash, err)
+		return "", fmt.Errorf("error opening blob %s: %w", hash, err)
 	}
 	defer breader.Close()
 	bytes, err := io.ReadAll(breader)
 	if err != nil {
-		return blob, fmt.Errorf("error reading blob %s: %w", hash, err)
+		return "", fmt.Errorf("error reading blob %s: %w", hash, err)
 	}
-	blob.Contents = fmt.Sprintf("%s", bytes)
-	blob.Hash = b.Hash.String()
-	blob.Size = b.Size
-	return blob, nil
+	return fmt.Sprintf("%s", bytes), nil
 }
 
 func toCommitHash(rev string, repo *git.Repository) (plumbing.Hash, error) {
@@ -447,4 +444,12 @@ func toDataRepo(repo *repo.Repo) data.Repo {
 		Description:  repo.Description,
 		LastModified: repo.LastModified,
 	}
+}
+
+func toBlobLines(cLines []string) []data.BlobLine {
+	lines := make([]data.BlobLine, len(cLines), len(cLines))
+	for i, cl := range cLines {
+		lines[i] = data.BlobLine{Number: i + 1, Content: cl}
+	}
+	return lines
 }

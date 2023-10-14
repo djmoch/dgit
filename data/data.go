@@ -207,9 +207,14 @@ type BlobData struct {
 }
 
 type Blob struct {
-	Hash     string
-	Size     int64
-	Contents string
+	Hash  string
+	Size  int64
+	Lines []BlobLine
+}
+
+type BlobLine struct {
+	Number  int
+	Content string
 }
 
 // RefsData is provided to the refs template when executed and becomes
