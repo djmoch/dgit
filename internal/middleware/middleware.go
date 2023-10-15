@@ -95,20 +95,20 @@ func Repo(h http.HandlerFunc) http.HandlerFunc {
 
 			rep *repo.Repo
 		)
-		rep = tryToOpenRepo(filepath.Join(c.RepoBasePath, req.Repo), c)
+		rep = tryToOpenRepo(req.Repo, c)
 		if rep != nil {
 			newReq := r.WithContext(context.WithValue(r.Context(), "repo", rep))
 			h(w, newReq)
 			return
 		}
 		if c.RemoveSuffix {
-			rep = tryToOpenRepo(filepath.Join(c.RepoBasePath, req.Repo)+".git", c)
+			rep = tryToOpenRepo(req.Repo+".git", c)
 			if rep != nil {
 				newReq := r.WithContext(context.WithValue(r.Context(), "repo", rep))
 				h(w, newReq)
 				return
 			}
-			rep = tryToOpenRepo(filepath.Join(c.RepoBasePath, req.Repo, "/.git"), c)
+			rep = tryToOpenRepo(filepath.Join(req.Repo, ".git"), c)
 			if rep != nil {
 				newReq := r.WithContext(context.WithValue(r.Context(), "repo", rep))
 				h(w, newReq)
@@ -126,11 +126,11 @@ func Repo(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func tryToOpenRepo(path string, c config.Config) *repo.Repo {
-	if repo.IsRepo(path) {
-		r, err := repo.NewRepo(path, c)
+func tryToOpenRepo(slug string, c config.Config) *repo.Repo {
+	if shouldServe(slug, c) {
+		r, err := repo.NewRepo(filepath.Join(c.RepoBasePath, slug), c)
 		if err != nil {
-			log.Printf("failed to open repo at %s: %v", path, err)
+			log.Printf("failed to open repo %s: %v", slug, err)
 			return nil
 		}
 		return r
@@ -144,7 +144,7 @@ func getRepos(cfg config.Config) ([]*repo.Repo, error) {
 		if err != nil {
 			return fmt.Errorf("getrepolist: error accessing %s: %v", path, err)
 		}
-		if info.IsDir() && repo.IsRepo(path) {
+		if info.IsDir() && shouldServe(path, cfg) {
 			re, err := repo.NewRepo(path, cfg)
 			if err != nil {
 				log.Printf("failed to open repo at %s: %v", path, err)
@@ -188,12 +188,12 @@ func tryDashRedirect(w http.ResponseWriter, req *request.Request, c config.Confi
 		for _, section := range strings.Fields(request.Sections) {
 			cPath := filepath.Join(pathElems[:i]...)
 			if pathElems[i] == section {
-				if repo.IsRepo(filepath.Join(c.RepoBasePath, cPath)) {
+				if shouldServe(cPath, c) {
 					found = true
 				}
 				if c.RemoveSuffix &&
-					(repo.IsRepo(filepath.Join(c.RepoBasePath, cPath+".git")) ||
-						repo.IsRepo(filepath.Join(c.RepoBasePath, cPath+"/.git"))) {
+					(shouldServe(cPath+".git", c) ||
+						shouldServe(filepath.Join(cPath, ".git"), c)) {
 					found = true
 				}
 			}
@@ -220,22 +220,20 @@ func trySuffixRedirect(w http.ResponseWriter, req *request.Request, c config.Con
 	)
 	switch c.RemoveSuffix {
 	case true:
-		log.Printf("DEBUG: req = %#v", req)
 		cRepo := strings.TrimSuffix(req.Repo, ".git")
 		cRepo = strings.TrimSuffix(cRepo, "/")
-		if repo.IsRepo(filepath.Join(c.RepoBasePath, cRepo+".git")) ||
-			repo.IsRepo(filepath.Join(c.RepoBasePath, cRepo+"/.git")) {
+		if shouldServe(cRepo+".git", c) || shouldServe(filepath.Join(cRepo, ".git"), c) {
 			loc = path.Join(cRepo, "-", req.Section, req.Revision, req.Path)
 			found = true
 		}
 	case false:
 		cRepo := req.Repo + ".git"
-		if repo.IsRepo(filepath.Join(c.RepoBasePath, cRepo)) {
+		if shouldServe(cRepo, c) {
 			loc = path.Join(cRepo, "-", req.Section, req.Revision, req.Path)
 			found = true
 		}
-		cRepo = req.Repo + "/.git"
-		if repo.IsRepo(filepath.Join(c.RepoBasePath, cRepo)) {
+		cRepo = filepath.Join(req.Repo + ".git")
+		if shouldServe(cRepo, c) {
 			loc = path.Join(cRepo, "-", req.Section, req.Revision, req.Path)
 			found = true
 		}
@@ -244,6 +242,28 @@ func trySuffixRedirect(w http.ResponseWriter, req *request.Request, c config.Con
 		w.Header().Set("location", loc)
 		w.WriteHeader(http.StatusMovedPermanently)
 		return true
+	}
+	return false
+}
+
+// ShouldServe returns true if [repo.IsRepo] is true and the slug is
+// in c's project list.
+func shouldServe(slug string, c config.Config) bool {
+	if !repo.IsRepo(filepath.Join(c.RepoBasePath, slug)) {
+		return false
+	}
+	if c.ProjectListPath == "" {
+		return true
+	}
+	projects, err := projectlist.NewProjectList(c.ProjectListPath)
+	if err != nil {
+		log.Printf("ERROR: could not open project list at %s: %v", c.ProjectListPath, err)
+		return false
+	}
+	for _, proj := range projects {
+		if slug == proj {
+			return true
+		}
 	}
 	return false
 }
