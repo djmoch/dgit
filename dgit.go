@@ -138,11 +138,13 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 	if dReq.Revision == "" {
 		t := template.Must(template.New("templates").Funcs(funcMap).
 			ParseFS(d.Config.Templates, "templates/*.tmpl"))
-		t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
+		if err := t.ExecuteTemplate(w, "tree.tmpl", data.TreeData{
 			RequestData: data.RequestData{
 				Repo: data.Repo{Slug: repo.Slug},
 			},
-		})
+		}); err != nil {
+			log.Printf("ERROR: failed to execute template: %v", err)
+		}
 		return
 	}
 	treeData, err := convert.ToTreeData(repo, dReq)
@@ -160,7 +162,9 @@ func (d *DGit) treeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "tree.tmpl", treeData)
+	if err = t.ExecuteTemplate(w, "tree.tmpl", treeData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
@@ -180,7 +184,9 @@ func (d *DGit) logHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "log.tmpl", logData)
+	if err = t.ExecuteTemplate(w, "log.tmpl", logData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +195,9 @@ func (d *DGit) rootHandler(w http.ResponseWriter, r *http.Request) {
 	indexData := convert.ToIndexData(repos)
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "index.tmpl", indexData)
+	if err := t.ExecuteTemplate(w, "index.tmpl", indexData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +217,9 @@ func (d *DGit) commitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "commit.tmpl", commitData)
+	if err = t.ExecuteTemplate(w, "commit.tmpl", commitData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {
@@ -229,7 +239,9 @@ func (d *DGit) diffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "diff.tmpl", diffData)
+	if err = t.ExecuteTemplate(w, "diff.tmpl", diffData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
@@ -255,7 +267,9 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "blob.tmpl", treeData)
+	if err = t.ExecuteTemplate(w, "blob.tmpl", treeData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
@@ -276,13 +290,17 @@ func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "refs.tmpl", refsData)
+	if err = t.ExecuteTemplate(w, "refs.tmpl", refsData); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func (d *DGit) displayError(w http.ResponseWriter, msg string) {
 	t := template.Must(template.New("templates").Funcs(funcMap).
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
-	t.ExecuteTemplate(w, "error.tmpl", struct{ Message string }{Message: msg})
+	if err := t.ExecuteTemplate(w, "error.tmpl", struct{ Message string }{Message: msg}); err != nil {
+		log.Printf("ERROR: failed to execute template: %v", err)
+	}
 }
 
 func getRepo(r *http.Request) *repo.Repo {
