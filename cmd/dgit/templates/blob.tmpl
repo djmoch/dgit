@@ -45,7 +45,7 @@
 	<div id="main">
 		<h1 class="p-name">{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo.Slug }}">{{ .Repo.Slug }}</a></h1>
 		<h2 class="p-summary">at {{ .Revision }}</h2>
-		<pre><code><table>{{ range .Blob.Lines }}<tr id="L{{ .Number }}" style="height: 17px;"><td>{{ .Content }}</td></tr>{{ end }}</table></code></pre>
+		<pre><code><table style="border-collapse: collapse;">{{ range .Blob.Lines }}<tr id="L{{ .Number }}" style="height: 17px;"><td style="text-align: right; border-right: 1px solid; padding-right: 5px;">{{ .Number }}</td><td style="padding-left: 5px;">{{ .Content }}</td></tr>{{ end }}</table></code></pre>
 	</div>
 </body>
 </html>
