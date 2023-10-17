@@ -43,7 +43,7 @@
 	</header>
 
 	<div id="main">
-		<h1 class="p-name">{{ if (and (ne .Path "") (ne .Path "/")) }}{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo.Slug }}">{{ .Repo.Slug }}</a>{{ else }}{{ .Repo.Slug }}{{ end }}</h1>
+		<h1 class="p-name">{{ if (and (ne .Path "") (ne .Path "/")) }}{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo.Slug }}">{{ .Repo.Slug }}</a>{{ else }}{{ .Repo.Slug }}{{ if ne .Repo.Description "" }}: {{ .Repo.Description }}{{ end }}{{ end }}</h1>
 		{{ if .IsEmpty }}<p>Repository is empty</p>
 		{{ else }}<h2 class="p-summary">at {{ .Revision }}
 		&ndash;
