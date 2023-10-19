@@ -48,7 +48,13 @@
 		<h2>Diffstat</h2>
 		<pre><code>{{ .Diffstat }}</code></pre>
 		{{ range .FilePatches }}<h2>{{ .File }}</h2>
-		<pre><table style="border-collapse: collapse; border: 1px solid; border-radius: 5px; background-color: #ffd">{{ range .Info }}<tr style="height: 17px;{{ if and (eq .Left "") (eq .Right "") }} background-color: #aaa; text-align: center;{{ else }}{{ if or (eq .Left "") (eq .Right "") }} background-color: #eea;{{ end }}{{ end }}"><td style="text-align: right; border-right: 1px solid; padding-right: 5px;">{{ .Left }}</td><td style="text-align: right; border-right: 1px solid; padding-right: 5px;">{{ .Right }}</td><td style="padding-left: 5px;">{{ .Content }}</td></tr>{{ end }}</table></pre>{{ end }}
+		<pre><code style="padding: 0;"><table style="border-collapse: collapse;">{{ range .Info }}
+			<tr style="height: 17px;{{ if and (eq .Left "") (eq .Right "") }} background-color: #aaa; text-align: center;{{ else }}{{ if or (eq .Left "") (eq .Right "") }} background-color: #eea;{{ end }}{{ end }}">
+				<td style="text-align: right; border-right: 1px solid; padding-right: 5px;">{{ .Left }}</td>
+				<td style="text-align: right; border-right: 1px solid; padding-right: 5px;">{{ .Right }}</td>
+				<td style="padding-left: 5px;">{{ .Content }}</td>
+			</tr>{{ end }}
+		</table></code></pre>{{ end }}
 	</div>
 </body>
 </html>
