@@ -6,13 +6,19 @@ package data
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"log"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 )
 
-var LogPageSize = 20
+var (
+	LogPageSize = 20
+	DiffContext = 3
+)
 
 // IndexData is provided to the index template when executed and
 // becomes dot within the template.
@@ -258,28 +264,105 @@ type FilePatch struct {
 	Chunks   []Chunk
 }
 
-func (fp FilePatch) String() string {
+var errBinaryPatch = errors.New("cannot print diff for a binary patch")
+
+func (fp FilePatch) Info() ([]PatchInfo, error) {
+	var (
+		lineNum  = 0
+		lines    = make([]int, 0)
+		fullInfo = make([]PatchInfo, 0)
+		info     = make([]PatchInfo, 0)
+
+		left, right int = 1, 1
+	)
 	if fp.IsBinary {
-		return "Changes to binary file"
+		return info, errBinaryPatch
+	}
+
+	for _, c := range fp.Chunks {
+		s := bufio.NewScanner(strings.NewReader(c.Content))
+		for ; s.Scan(); lineNum += 1 {
+			switch c.Type {
+			case Equal:
+				fullInfo = append(fullInfo, PatchInfo{
+					Left:      strconv.Itoa(left),
+					Right:     strconv.Itoa(right),
+					Operation: Equal,
+					Content:   " " + s.Text(),
+				})
+				left += 1
+				right += 1
+			case Add:
+				fullInfo = append(fullInfo, PatchInfo{
+					Right:     strconv.Itoa(right),
+					Operation: Add,
+					Content:   "+" + s.Text(),
+				})
+				lines = append(lines, lineNum)
+				right += 1
+			case Delete:
+				fullInfo = append(fullInfo, PatchInfo{
+					Left:      strconv.Itoa(left),
+					Operation: Delete,
+					Content:   "-" + s.Text(),
+				})
+				lines = append(lines, lineNum)
+				left += 1
+			}
+		}
+		if err := s.Err(); err != nil {
+			return info, fmt.Errorf("ERROR: Failure scanning FilePatch chunks: %w", err)
+		}
+	}
+
+	inDiff := false
+	for i, lineInfo := range fullInfo {
+		var (
+			lineInContext = false
+		)
+		for _, diffLine := range lines {
+			switch {
+			case i < diffLine && (i+DiffContext) >= diffLine,
+				i == diffLine,
+				i > diffLine && (i-DiffContext) <= diffLine:
+				lineInContext = true
+				inDiff = true
+				break
+			}
+		}
+		switch lineInContext {
+		case true:
+			info = append(info, lineInfo)
+		case false:
+			if inDiff {
+				info = append(info, PatchInfo{Content: ". . ."})
+				inDiff = false
+			}
+		}
+	}
+
+	if info[len(info)-1].Content == ". . ." {
+		return info[:len(info)-1], nil
+	}
+	return info, nil
+}
+
+func (fp FilePatch) String() string {
+	info, err := fp.Info()
+	if err != nil {
+		if errors.Is(err, errBinaryPatch) {
+			return "Changes to binary file"
+		}
+		log.Println("ERROR: FilePatch.String:", err)
+		return ""
 	}
 
 	sb := new(strings.Builder)
-	for _, c := range fp.Chunks {
-		s := bufio.NewScanner(strings.NewReader(c.Content))
-		for s.Scan() {
-			switch c.Type {
-			case Equal:
-				sb.WriteString(" " + s.Text() + "\n")
-			case Add:
-				sb.WriteString("+" + s.Text() + "\n")
-			case Delete:
-				sb.WriteString("-" + s.Text() + "\n")
-			}
-		}
-		if s.Err() != nil {
-			return "Error scanning chunks to build patch"
-		}
+
+	for _, lineInfo := range info {
+		sb.WriteString(lineInfo.Content + "\n")
 	}
+
 	return sb.String()
 }
 
@@ -295,6 +378,12 @@ const (
 	Add
 	Delete
 )
+
+type PatchInfo struct {
+	Left, Right string
+	Operation   Operation
+	Content     string
+}
 
 type DiffData struct {
 	Repo        Repo
