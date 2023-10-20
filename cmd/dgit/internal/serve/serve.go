@@ -8,7 +8,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/http/fcgi"
 	"net/url"
 
 	"djmo.ch/dgit"
@@ -23,10 +22,8 @@ var Cmd = &base.Command{
 	ShortHelp: "serve Git repositories",
 	LongHelp: `Serve serves Git repositories
 
-Repositories are served for viewing on the provided URL. When the URL
-specifies a Unix domain socket, DGit acts as an FCGI server, otherwise
-it acts as an HTTP server. DGit does not serve over HTTPS, and as such
-specifying that scheme is an error.
+DGit listens and serves repositories on the provided URL. The only
+recognized scheme is http.
 	`,
 }
 
@@ -44,9 +41,6 @@ func runServe(ctx context.Context) {
 	if err != nil {
 		log.Fatal("failed to parse URL: ", err)
 	}
-	if u.Scheme == "https" {
-		log.Fatal("https scheme not supported")
-	}
 	dg := &dgit.DGit{Config: cfg}
 	switch u.Scheme {
 	case "http":
@@ -55,12 +49,6 @@ func runServe(ctx context.Context) {
 			log.Fatal("listen: ", err)
 		}
 		log.Fatal(http.Serve(listener, dg))
-	case "unix":
-		listener, err := net.Listen("unix", u.Path)
-		if err != nil {
-			log.Fatal("listen: ", err)
-		}
-		log.Fatal(fcgi.Serve(listener, dg))
 	default:
 		log.Fatal("unknown scheme:", u.Scheme)
 	}

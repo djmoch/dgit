@@ -26,9 +26,5 @@ djmo.ch/dgit/cmd/dgit@latest". From here, the server can be run as:
 
     $ dgit serve http://localhost:8080
 
-An FCGI mode is also supported whenever a UNIX socket is provided:
-
-    $ dgit serve unix:/run/dgit/server.sock
-
 Full documentation can be found by running "go doc ./cmd/dgit" from
 this directory.

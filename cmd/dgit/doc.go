@@ -33,10 +33,8 @@ usage: dgit serve URL
 
 Serve serves Git repositories
 
-Repositories are served for viewing on the provided URL. When the URL
-specifies a Unix domain socket, DGit acts as an FCGI server, otherwise
-it acts as an HTTP server. DGit does not serve over HTTPS, and as such
-specifying that scheme is an error.
+DGit listens and serves repositories on the provided URL. The only
+recognized scheme is http.
 
 # Print DGit environment information
 
