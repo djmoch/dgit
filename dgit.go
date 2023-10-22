@@ -13,6 +13,10 @@
 //
 // Summarizing most of the above, we may call DGit a read-only
 // repository browser, or a repository viewer.
+//
+// The DGit handler supports the "dumb" Git HTTP protocol, so
+// read-only repository operations, such as cloning and fetching, are
+// supported.
 package dgit
 
 import (
@@ -20,9 +24,11 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 
 	"djmo.ch/dgit/config"
 	"djmo.ch/dgit/data"
@@ -94,7 +100,6 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), "dReq", dReq)
 	ctx = context.WithValue(ctx, "cfg", d.Config)
 	req := r.WithContext(ctx)
-
 	switch dReq.Section {
 	case "repo":
 		h := middleware.Get(middleware.Repos(d.rootHandler))
@@ -119,6 +124,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h(w, req)
 	case "diff":
 		h := middleware.Get(middleware.Repo(d.diffHandler))
+		h(w, req)
+	case "dumbClone":
+		h := middleware.Get(middleware.Repo(d.dumbCloneHandler))
 		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
@@ -292,6 +300,36 @@ func (d *DGit) refsHandler(w http.ResponseWriter, r *http.Request) {
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
 	if err = t.ExecuteTemplate(w, "refs.tmpl", refsData); err != nil {
 		log.Printf("ERROR: failed to execute template: %v", err)
+	}
+}
+
+func (d *DGit) dumbCloneHandler(w http.ResponseWriter, r *http.Request) {
+	dReq := r.Context().Value("dReq").(*request.Request)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, "Repo not found")
+		return
+	}
+	cloneResponse, err := convert.ToCloneData(repo, dReq, d.Config)
+	if err != nil {
+		if strings.Contains(err.Error(), "no such file or directory") {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "not found")
+			return
+		}
+		log.Printf("ERROR: failed to extract clone data %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal server error")
+		return
+	}
+	w.Header().Set("content-type", cloneResponse.ContentType)
+	_, err = io.Copy(w, cloneResponse.Data)
+	if err != nil {
+		log.Printf("ERROR: failed to copy clone data %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal server error")
+		return
 	}
 }
 

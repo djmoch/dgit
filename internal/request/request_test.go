@@ -60,6 +60,54 @@ func TestParse(t *testing.T) {
 				DiffTo:   "v1.1.0",
 			},
 		},
+		{
+			url: mustParse("/testRepo/HEAD"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "dumbClone",
+				Path:    "HEAD",
+			},
+		},
+		{
+			url: mustParse("/testRepo/info/refs"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "dumbClone",
+				Path:    "info/refs",
+			},
+		},
+		{
+			url: mustParse("/testRepo/objects/info/idontknowwhat"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "dumbClone",
+				Path:    "objects/info/idontknowwhat",
+			},
+		},
+		{
+			url: mustParse("/testRepo/objects/23/04082c3b4322518796a0586f3454cc803f0cfd"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "dumbClone",
+				Path:    "objects/23/04082c3b4322518796a0586f3454cc803f0cfd",
+			},
+		},
+		{
+			url: mustParse("/testRepo/objects/pack/pack-2304082c3b4322518796a0586f3454cc803f0cfd.pack"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "dumbClone",
+				Path:    "objects/pack/pack-2304082c3b4322518796a0586f3454cc803f0cfd.pack",
+			},
+		},
+		{
+			url: mustParse("/path/to/testRepo/objects/pack/pack-2304082c3b4322518796a0586f3454cc803f0cfd.idx"),
+			req: &Request{
+				Repo:    "path/to/testRepo",
+				Section: "dumbClone",
+				Path:    "objects/pack/pack-2304082c3b4322518796a0586f3454cc803f0cfd.idx",
+			},
+		},
 	}
 
 	for _, entry := range urlTable {
@@ -71,25 +119,25 @@ func TestParse(t *testing.T) {
 			t.Fatal("Repo: exp=", entry.req.Repo, ", act=", req.Repo)
 		}
 		if req.Section != entry.req.Section {
-			t.Fatal("Repo: exp=", entry.req.Section, ", act=", req.Section)
+			t.Fatal("Section: exp=", entry.req.Section, ", act=", req.Section)
 		}
 		if req.Revision != entry.req.Revision {
-			t.Fatal("Repo: exp=", entry.req.Revision, ", act=", req.Revision)
+			t.Fatal("Revision: exp=", entry.req.Revision, ", act=", req.Revision)
 		}
 		if req.Path != entry.req.Path {
-			t.Fatal("Repo: exp=", entry.req.Path, ", act=", req.Path)
+			t.Fatal("Path: exp=", entry.req.Path, ", act=", req.Path)
 		}
 		if req.From != entry.req.From {
-			t.Fatal("Repo: exp=", entry.req.From, ", act=", req.From)
+			t.Fatal("From: exp=", entry.req.From, ", act=", req.From)
 		}
 		if req.From != entry.req.From {
-			t.Fatal("Repo: exp=", entry.req.From, ", act=", req.From)
+			t.Fatal("From: exp=", entry.req.From, ", act=", req.From)
 		}
 		if req.DiffFrom != entry.req.DiffFrom {
-			t.Fatal("Repo: exp=", entry.req.DiffFrom, ", act=", req.DiffFrom)
+			t.Fatal("DiffFrom: exp=", entry.req.DiffFrom, ", act=", req.DiffFrom)
 		}
 		if req.DiffTo != entry.req.DiffTo {
-			t.Fatal("Repo: exp=", entry.req.DiffTo, ", act=", req.DiffTo)
+			t.Fatal("DiffTo: exp=", entry.req.DiffTo, ", act=", req.DiffTo)
 		}
 	}
 }

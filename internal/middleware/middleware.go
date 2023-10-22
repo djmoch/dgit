@@ -185,7 +185,7 @@ func tryDashRedirect(w http.ResponseWriter, req *request.Request, c config.Confi
 	pathElems := strings.Split(req.Repo, "/")
 	found := false
 	for i := len(pathElems) - 1; i > 0; i -= 1 {
-		for _, section := range strings.Fields(request.Sections) {
+		for _, section := range strings.Fields(request.WebSections) {
 			cPath := filepath.Join(pathElems[:i]...)
 			if pathElems[i] == section {
 				if shouldServe(cPath, c) {

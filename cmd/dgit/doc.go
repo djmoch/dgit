@@ -36,6 +36,9 @@ Serve serves Git repositories
 DGit listens and serves repositories on the provided URL. The only
 recognized scheme is http.
 
+The DGit handler supports the "dumb" Git HTTP protocol, so read-only
+repository operations, such as cloning and fetching, are supported.
+
 # Print DGit environment information
 
 usage: dgit env [-u] [-w] [var ...]
