@@ -5,15 +5,25 @@ package config
 
 import "embed"
 
+// BUG(djmoch): DGit does not support the "repository owner" field in
+// project list file entries, and attempting to specify one will cause
+// the associated repository not to be recognized.
+
 // Config contains all global configuration required by DGit.
 type Config struct {
 	// RepoBasePath is the base path to the repository tree. This
 	// value is prepended to a repository request path to create its
-	// absolute path.
+	// absolute path in the file system.
 	RepoBasePath string
 
 	// ProjectListPath is the path to the file containing the list
-	// of projects to serve.
+	// of projects to serve. This file is described in the [Git
+	// Documentation]. Note that DGit does not support the
+	// "repository owner" field in project list file entries, and
+	// attempting to specify one will cause the associated
+	// repository not to be recognized.
+	//
+	// [Git Documentation]: https://git-scm.com/docs/gitweb#_projects_list_file_format
 	ProjectListPath string
 
 	// RemoveSuffix controls whether or not to remove the .git
@@ -33,13 +43,13 @@ type Config struct {
 	// an error template to handle errors.
 	//
 	// The full list of required template files is:
-	//  - blob.tmpl
-	//  - commit.tmpl
-	//  - diff.tmpl
-	//  - error.tmpl
-	//  - index.tmpl
-	//  - log.tmpl
-	//  - refs.tmpl
-	//  - tree.tmpl
+	//   - blob.tmpl
+	//   - commit.tmpl
+	//   - diff.tmpl
+	//   - error.tmpl
+	//   - index.tmpl
+	//   - log.tmpl
+	//   - refs.tmpl
+	//   - tree.tmpl
 	Templates embed.FS
 }

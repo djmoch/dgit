@@ -1,30 +1,47 @@
 Djmoch's Git Viewer
 ===================
 
-DGit is designed to be a stripped down, fast Git viewer written in
-pure Go. Being written in pure Go, it is possible to statically-link
-the resulting command-line interface. When this is achieved, its only
-external requirements are the Git repositories themselves and any
-custom templates. This makes DGit suitable for dropping into a chroot
-or other restricted environment.
+DGit is a fast, template-driven Git repository viewer
+written in pure Go. Being written in pure Go, it is possible to
+statically-link the resulting command-line interface with all of its
+depedencies, including templates and static files. When this is
+achieved, its only external requirements are the Git repositories
+themselves. This makes DGit suitable for dropping into a chroot or
+other restricted environment.
 
 HTTP Handler
 ------------
 
-This module is imported as djmo.ch/dgit and provides a Go http.Handler
-called DGit. Drop this Handler into your site's http.ServeMux and
-start viewing Git repositories.
+This Go http.Hanlder module is imported as djmo.ch/dgit.
 
-Full documentation can be found by running "go doc -all ." from this
-directory.
+To use, initialize DGit with a config.Config object specifying, among
+other things, an io/fs.FS containing your HTML templates, drop this
+Handler into your site's http.ServeMux and start viewing Git
+repositories.
 
-Command-Line Interface
-----------------------
+The DGit handler supports the ["dumb" Git HTTP transfer protocol], so
+read-only repository operations, such as cloning and fetching, are
+supported.
 
-The easiest way to install the DGit CLI is with "go install
-djmo.ch/dgit/cmd/dgit@latest". From here, the server can be run as:
+["dumb" Git HTTP transfer protocol]: https://git-scm.com/docs/gitprotocol-http
 
-    $ dgit serve http://localhost:8080
+CLI Reference Implementation
+----------------------------
 
-Full documentation can be found by running "go doc ./cmd/dgit" from
-this directory.
+The command line interface (CLI) in this repository is a reference
+implementation and, as such, is not suitable for general use. It does,
+however, run the maintainer's Git website
+(https://git.danielmoch.com). It has been made publicly available to
+demonstrate how to incorporate DGit into your website.
+
+License
+-------
+
+ISC. See the LICENSE file in this repository for full copyright and
+license information.
+
+Contributing
+------------
+
+Contributions are welcome. Full details on how to engage with the
+maintainer and other developers are in the CONTRIBUTING file.

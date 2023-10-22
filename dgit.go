@@ -1,22 +1,25 @@
 // See LICENSE file for copyright and license details
 
-// Package dgit provides the DGit [http.Handler] and its helpers. DGit
-// is designed to be a stripped down, template-driven, fast Git viewer
-// written in pure Go.
+// Package dgit provides the DGit [http.Handler] and its helpers.
 //
-// The following anti-features are not implemented:
-//   - Syntax highlighting
-//   - Online pull/merge requests
-//   - Social features (e.g., stars, followers)
-//   - Users are not a concept in DGit (although admins may choose to
-//     namespace repositories according to their owner)
+// DGit is a fast, template-driven Git repository viewer
+// written in pure Go. Being written in pure Go, it is possible to
+// statically-link the resulting command-line interface with all of its
+// depedencies, including templates and static files. When this is
+// achieved, its only external requirements are the Git repositories
+// themselves. This makes DGit suitable for dropping into a chroot or
+// other restricted environment.
 //
-// Summarizing most of the above, we may call DGit a read-only
-// repository browser, or a repository viewer.
+// To use, initialize DGit with a [config.Config] object specifying,
+// among other things, an [io/fs.FS] containing your HTML templates,
+// drop this Handler into your site's [http.ServeMux] and start viewing
+// Git repositories.
 //
-// The DGit handler supports the "dumb" Git HTTP protocol, so
+// The DGit handler supports the "dumb" [Git HTTP transfer] protocol, so
 // read-only repository operations, such as cloning and fetching, are
 // supported.
+//
+// [Git HTTP transfer]: https://git-scm.com/docs/gitprotocol-http
 package dgit
 
 import (
@@ -53,11 +56,11 @@ var funcMap = template.FuncMap{"Humanize": humanize.Time}
 //     contents are displayed below the commit tree.
 //   - Navigating to /{repo}/-/refs displays a list of branches and tags
 //     for repository {repo}.
-//   - Navigating to /{repo}/-/tree/{ref or commit}/{path} displays
-//     the tree for {ref or commit} of {repo} at {path}. If not provided,
+//   - Navigating to /{repo}/-/tree/{rev}/{path} displays
+//     the tree for {rev} of {repo} at {path}. If not provided,
 //     {path} defaults to the root of the repository.
-//   - Navigating to /{repo}/-/blob/{ref or commit}/{path} displays
-//     the blob contents for {ref or commit} of {repo} at {path}. If not
+//   - Navigating to /{repo}/-/blob/{rev}/{path} displays
+//     the blob contents for {rev} of {repo} at {path}. If not
 //     provided, {path} defaults to the root of the repository.
 //   - Navigating to /{repo}/-/commit/{commit} displays the commit
 //     message and diff for commit {commit} of repository {repo}.
@@ -65,19 +68,18 @@ var funcMap = template.FuncMap{"Humanize": humanize.Time}
 //     for each commit in the history of branch {branch} in repository
 //     {repo}. When navigating to /{repo}/-/log, callers are redirected
 //     to /{repo}/log/{default branch}.
-//   - Navigating to /{repo}/-/diff displays the diff of two commits,
-//     specfied as get parameters id and id2. The diff is calculated
-//     assuming that id2 comes earlier, as in the git command "git
-//     diff id2..id."
+//   - Navigating to /{repo}/-/diff/rev1..rev2 displays the diff from {rev1}
+//     to {rev2} of {repo}.
 //
 // Where the variable {commit} is used above, it may refer to a commit
 // hash or ref. If the ref is a branch, the commit is the branch's
 // HEAD.
 type DGit struct {
+	// DGit configuration
 	Config config.Config
 }
 
-// ServeHTTP implements the [http.Handler] interface method.
+// ServeHTTP implements the [http.Handler] interface for DGit.
 func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	dReq, err := request.Parse(r.URL)
 	if err != nil {

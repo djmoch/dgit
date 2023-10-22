@@ -15,19 +15,25 @@ import (
 	"time"
 )
 
+// TODO(djmoch): Migrate the below variables into config.Config
+
 var (
+	// LogPageSize is the number of log entries presented per
+	// page.
 	LogPageSize = 20
+	// DiffContext is t he number of context lines presented on
+	// either side of a diff
 	DiffContext = 3
 )
 
 // IndexData is provided to the index template when executed and
 // becomes dot within the template.
 type IndexData struct {
+	// Repos is a slice of repositories
 	Repos []*Repo
 }
 
-// Repo is a single element of [IndexData] and contains data for a
-// single repository.
+// The Repo struct contains data for a single repository.
 type Repo struct {
 	// Slug is the URL path to the repository, relative to the
 	// DGit root URL.
@@ -44,6 +50,7 @@ type Repo struct {
 	LastModified time.Time
 }
 
+// RequestData is the base type for several of the other data types.
 type RequestData struct {
 	// The repository
 	Repo Repo
@@ -57,7 +64,9 @@ type RequestData struct {
 // in [RequestData.Path]. This is useful to build a breadcrumb, which
 // might look like:
 //
-//	{{ for range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision }}{{ .Path }}">{{ .Base }}</a>/{{ end }}
+//	{{ for range .PathElems -}}
+//		<a href="/{{ .Repo }}/-/tree/{{ .Revision }}{{ .Path }}">{{ .Base }}</a>
+//	{{- end }}
 func (r RequestData) PathElems() []PathElem {
 	var (
 		splitPath = strings.Split(string(r.Path), "/")
@@ -84,11 +93,18 @@ func (r RequestData) PathBase() string {
 	return path.Base(r.Path)
 }
 
+// The PathElem struct contains information for a repository path
+// element.
 type PathElem struct {
-	Repo     string
+	// Repo is the repository slug.
+	Repo string
+	// Revision is the Git revision.
 	Revision string
-	Path     string
-	Base     string
+	// Path is the path within the repository, excluding the
+	// current path element and any following it.
+	Path string
+	// Base is the current path element.
+	Base string
 }
 
 // TreeData extends [RequestData] and is provided to the head and tree
@@ -135,25 +151,26 @@ type Commit struct {
 	Time time.Time
 }
 
+// HasParents returns true when c has one or more parents. Otherwise
+// it returns false.
 func (c Commit) HasParents() bool {
 	return len(c.ParentHashes) != 0
 }
 
-// Hash is a Git hash
+// Hash is a Git hash.
 type Hash string
 
-// Short returns a short version of the Git hash
+// Short returns a short version of the Git hash.
 func (h Hash) Short() string {
 	return fmt.Sprint(h[:7])
 }
 
-// Path is a URL path.
-type Path string
-
 // Tree contains information related to a Git tree.
 type Tree struct {
+	// Entries describes the entries in the current tree.
 	Entries []TreeEntry
-	Hash    string
+	// Hash is the hash of the current tree.
+	Hash Hash
 }
 
 // TreeEntry contains information related to a tree entry. For
@@ -165,22 +182,33 @@ type TreeEntry struct {
 	// The file mode. See [FileMode].
 	Mode FileMode
 	// The file hash.
-	Hash string
+	Hash Hash
 	// The link (href) to view the file.
 	Href string
 }
 
+// FileMode contains the encoded type of a Git tree entry.
 type FileMode uint8
 
+// These are recognized [FileMode] values.
 const (
+	// Empty or uninitialized
 	Empty FileMode = iota
+	// A directory
 	Dir
+	// A regular file
 	File
+	// An executable file
 	Executable
+	// A symbolic link
 	Symlink
+	// A Git submodule
 	Submodule
 )
 
+// String returns the string representation of f. The string
+// representation is similar to the output of the "ls" command on Unix
+// systems.
 func (f FileMode) String() string {
 	switch f {
 	case Dir:
@@ -192,7 +220,7 @@ func (f FileMode) String() string {
 	case Symlink:
 		return "lrwxrwxrwx"
 	case Submodule:
-		return "submodule-"
+		return "s---------"
 	default:
 		return "-unknown--"
 	}
@@ -212,12 +240,18 @@ type BlobData struct {
 	Blob Blob
 }
 
+// Blob is information related to a Git blob.
 type Blob struct {
-	Hash  string
-	Size  int64
+	// The blob hash
+	Hash string
+	// The size of the blob
+	Size int64
+	// The contents of the blob
 	Lines []BlobLine
 }
 
+// Blob line contains the line number and contents of a single line in
+// a Git blob.
 type BlobLine struct {
 	Number  int
 	Content string
@@ -226,46 +260,72 @@ type BlobLine struct {
 // RefsData is provided to the refs template when executed and becomes
 // dot within the template.
 type RefsData struct {
-	Repo     Repo
+	// The repository
+	Repo Repo
+	// A slice containing all branch references
 	Branches []Reference
-	Tags     []Reference
+	// A slice containing all tag references
+	Tags []Reference
 }
 
+// Reference contains information pertaining to a Git repository reference.
 type Reference struct {
+	// The name of the reference
 	Name string
+	// The time the reference was created or last updated
+	// (whichever is most recent)
 	Time time.Time
 }
 
 // LogData is provided to the log template when executed and becomes
 // dot within the template.
 type LogData struct {
-	Repo     Repo
+	// The repository
+	Repo Repo
+	// The revision
 	Revision string
+	// The hash from which to begin displaying the log
 	FromHash Hash
-	Commits  []Commit
+	// A slice of Git commit information
+	Commits []Commit
+	// The hash of the first commit for the next page
 	NextPage Hash
 }
 
+// HasNext returns true of l.NextPage is not empty.
 func (l LogData) HasNext() bool {
 	return l.NextPage != ""
 }
 
+// CommitData is provided to the commit template when executed and
+// becomes dot within the template.
 type CommitData struct {
-	Repo        Repo
-	Revision    string
-	Commit      Commit
-	Diffstat    string
+	// The repository
+	Repo Repo
+	// The revision
+	Revision string
+	// The commit
+	Commit Commit
+	// The commit diffstat, populated from [object.FileStats.String].
+	Diffstat string
+	// A slice of file patches
 	FilePatches []FilePatch
 }
 
+// FilePatch represents the changes to an individual file.
 type FilePatch struct {
+	// True if the file is binary, otherwise false.
 	IsBinary bool
-	File     string
-	Chunks   []Chunk
+	// The file name
+	File string
+	// A slice of chunks representing changes to the file
+	Chunks []Chunk
 }
 
 var errBinaryPatch = errors.New("cannot print diff for a binary patch")
 
+// Info converts fp to a slice of PatchInfo, ideal for display within
+// an HTML table.
 func (fp FilePatch) Info() ([]PatchInfo, error) {
 	var (
 		lineNum  = 0
@@ -347,6 +407,7 @@ func (fp FilePatch) Info() ([]PatchInfo, error) {
 	return info, nil
 }
 
+// String implements the [fmt.Stringer] interface for FilePatch.
 func (fp FilePatch) String() string {
 	info, err := fp.Info()
 	if err != nil {
@@ -366,28 +427,44 @@ func (fp FilePatch) String() string {
 	return sb.String()
 }
 
+// Chunk represents the content and type of a file patch.
 type Chunk struct {
 	Content string
 	Type    Operation
 }
 
+// Operation describes the type of patch operation.
 type Operation int
 
 const (
+	// The chunk is equal within both files
 	Equal Operation = iota
+	// Content is added to the old file to make the new one
 	Add
+	// Content is deleted from the old file to make the new one
 	Delete
 )
 
+// PatchInfo represents a single line of a file patch, structured for
+// display within an HTML table.
 type PatchInfo struct {
+	// The line numbers in the left (old) and right (new) files
 	Left, Right string
-	Operation   Operation
-	Content     string
+	// The operation being performed in the current line
+	Operation Operation
+	// The content of the current line
+	Content string
 }
 
+// DiffData is provided to the diff template when executed and becomes
+// dot within the template.
 type DiffData struct {
-	Repo        Repo
-	From, To    string
-	Diffstat    string
+	// The repository
+	Repo Repo
+	// The source (from) and destination (to) revision
+	From, To string
+	// The diffstat
+	Diffstat string
+	// File patches
 	FilePatches []FilePatch
 }

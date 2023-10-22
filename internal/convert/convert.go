@@ -72,7 +72,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 		}
 	}
 
-	t.Tree.Hash = c.TreeHash.String()
+	t.Tree.Hash = data.Hash(c.TreeHash.String())
 	t.Tree.Entries = make([]data.TreeEntry, len(gitTree.Entries), len(gitTree.Entries))
 	for i, entry := range gitTree.Entries {
 		var (
@@ -100,7 +100,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 		te := data.TreeEntry{
 			Name: entry.Name,
 			Mode: mode,
-			Hash: entry.Hash.String(),
+			Hash: data.Hash(entry.Hash.String()),
 			Href: path.Clean(fmt.Sprintf("/%s/-/%s/%s/%s/%s", repo.Slug, hrefSection,
 				t.Revision, req.Path, entry.Name)),
 		}
