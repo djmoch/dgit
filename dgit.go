@@ -62,6 +62,9 @@ var funcMap = template.FuncMap{"Humanize": humanize.Time}
 //   - Navigating to /{repo}/-/blob/{rev}/{path} displays
 //     the blob contents for {rev} of {repo} at {path}. If not
 //     provided, {path} defaults to the root of the repository.
+//   - Navigating to /{repo}/-/raw/{rev}/{path} displays
+//     the raw contents for {rev} of {repo} at {path}. If not
+//     provided, {path} defaults to the root of the repository.
 //   - Navigating to /{repo}/-/commit/{commit} displays the commit
 //     message and diff for commit {commit} of repository {repo}.
 //   - Navigating to /{repo}/-/log/{branch} displays summary information
@@ -114,6 +117,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h(w, req)
 	case "blob":
 		h := middleware.Get(middleware.Repo(d.blobHandler))
+		h(w, req)
+	case "raw":
+		h := middleware.Get(middleware.Repo(d.rawHandler))
 		h(w, req)
 	case "refs":
 		h := middleware.Get(middleware.Repo(d.refsHandler))
@@ -279,6 +285,32 @@ func (d *DGit) blobHandler(w http.ResponseWriter, r *http.Request) {
 		ParseFS(d.Config.Templates, "templates/*.tmpl"))
 	if err = t.ExecuteTemplate(w, "blob.tmpl", treeData); err != nil {
 		log.Printf("ERROR: failed to execute template: %v", err)
+	}
+}
+
+func (d *DGit) rawHandler(w http.ResponseWriter, r *http.Request) {
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		d.displayError(w, "Repo not found")
+		return
+	}
+	dReq := r.Context().Value("dReq").(*request.Request)
+	blobData, err := convert.ToBlobData(repo, dReq)
+	if err != nil {
+		if errors.Is(err, convert.ErrFileNotFound) {
+			log.Println(err)
+			w.WriteHeader(http.StatusNotFound)
+			d.displayError(w, "Not found")
+			return
+		}
+		log.Printf("ERROR: failed to extract template data from %s: %v", repo.Slug, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		d.displayError(w, "Internal server error")
+		return
+	}
+	for _, line := range blobData.Blob.Lines {
+		fmt.Fprintln(w, line.Content)
 	}
 }
 
