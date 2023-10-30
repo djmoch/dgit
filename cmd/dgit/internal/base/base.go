@@ -37,11 +37,8 @@ var DGit = &Command{
 	Name: "dgit",
 	LongHelp: `Djmoch's Git Viewer
 
-DGit is a template-driven alternative to CGit. It runs either as a
-FastCGI utility or listens on a TCP port to allow viewing Git
-repositories from a web browser. The look-and-feel of the website is
-controlled by templates. You can use the provided templates, or you
-can roll your own.
+DGit is a template-driven alternative to CGit. It listens on a TCP
+port to allow viewing Git repositories from a web browser.
 `,
 	Usage: "dgit <command> [arguments]",
 }
