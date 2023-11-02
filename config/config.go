@@ -3,7 +3,7 @@
 // Package config implements DGit configuration data types
 package config
 
-import "embed"
+import "io/fs"
 
 // BUG(djmoch): DGit does not support the "repository owner" field in
 // project list file entries, and attempting to specify one will cause
@@ -35,7 +35,7 @@ type Config struct {
 	// URL if it exists in the path.
 	RemoveSuffix bool
 
-	// Templates is an [embed.FS] that contains the HTML template
+	// Templates is an [fs.FS] that contains the HTML template
 	// files (see [html/template]). The templates must live inside
 	// the FS in a "templates" directory. File names end in .tmpl
 	// and are named based on their section. There is no "head"
@@ -51,5 +51,5 @@ type Config struct {
 	//   - log.tmpl
 	//   - refs.tmpl
 	//   - tree.tmpl
-	Templates embed.FS
+	Templates fs.FS
 }
