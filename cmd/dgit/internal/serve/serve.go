@@ -5,6 +5,7 @@ package serve
 
 import (
 	"context"
+	"embed"
 	"log"
 	"net"
 	"net/http"
@@ -30,6 +31,9 @@ repository operations, such as cloning and fetching, are supported.
 	`,
 }
 
+//go:embed assets/*
+var assets embed.FS
+
 func runServe(ctx context.Context) {
 	log.SetFlags(log.LstdFlags)
 	log.SetPrefix("")
@@ -45,13 +49,15 @@ func runServe(ctx context.Context) {
 		log.Fatal("failed to parse URL: ", err)
 	}
 	dg := &dgit.DGit{Config: cfg}
+	http.Handle("/", dg)
+	http.Handle("/-/", http.StripPrefix("/-/", http.FileServer(http.FS(assets))))
 	switch u.Scheme {
 	case "http":
 		listener, err := net.Listen("tcp", u.Host)
 		if err != nil {
 			log.Fatal("listen: ", err)
 		}
-		log.Fatal(http.Serve(listener, dg))
+		log.Fatal(http.Serve(listener, nil))
 	default:
 		log.Fatal("unknown scheme:", u.Scheme)
 	}
