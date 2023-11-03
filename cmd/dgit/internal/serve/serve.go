@@ -6,6 +6,7 @@ package serve
 import (
 	"context"
 	"embed"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -34,6 +35,11 @@ repository operations, such as cloning and fetching, are supported.
 //go:embed assets/*
 var assets embed.FS
 
+var robotstxt = `# Welcome to DGit
+User-Agent: *
+Disallow: /-/
+`
+
 func runServe(ctx context.Context) {
 	log.SetFlags(log.LstdFlags)
 	log.SetPrefix("")
@@ -51,6 +57,7 @@ func runServe(ctx context.Context) {
 	dg := &dgit.DGit{Config: cfg}
 	http.Handle("/", dg)
 	http.Handle("/-/", http.StripPrefix("/-/", http.FileServer(http.FS(assets))))
+	http.HandleFunc("/robots.txt", robots)
 	switch u.Scheme {
 	case "http":
 		listener, err := net.Listen("tcp", u.Host)
@@ -61,4 +68,8 @@ func runServe(ctx context.Context) {
 	default:
 		log.Fatal("unknown scheme:", u.Scheme)
 	}
+}
+
+func robots(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, robotstxt)
 }
