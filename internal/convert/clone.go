@@ -33,6 +33,7 @@ func ToCloneData(repo *repo.Repo, r *request.Request, cfg config.Config) (*DumbC
 	case r.Path == "HEAD", strings.HasPrefix(r.Path, "objects/"):
 		cType := "application/octet-stream"
 		if r.Path == "HEAD" {
+			log.Printf("client reading %s/HEAD (clone?)", repo.Slug)
 			cType = "text/plain"
 		}
 		d, err := readFile(filepath.Join(cfg.RepoBasePath, repo.Path, r.Path))
