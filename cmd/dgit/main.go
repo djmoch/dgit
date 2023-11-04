@@ -83,7 +83,7 @@ func main() {
 func usage() {
 	var (
 		ctx  = context.Background()
-		args = make([]string, 0, 0)
+		args = make([]string, 0)
 	)
 	ctx = context.WithValue(ctx, "w", os.Stdout)
 	ctx = context.WithValue(ctx, "args", args)

@@ -76,7 +76,7 @@ func parseCloneRequest(url *url.URL) (*Request, error) {
 				done = true
 			}
 		}
-		if done == true {
+		if done {
 			r.Section = "dumbClone"
 			r.Path = path.Join(splitPath...)
 			return r, nil

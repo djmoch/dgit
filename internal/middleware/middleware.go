@@ -155,7 +155,10 @@ func getRepos(cfg config.Config) ([]*repo.Repo, error) {
 		}
 		return nil
 	}
-	filepath.Walk(cfg.RepoBasePath, walkFunc)
+	err := filepath.Walk(cfg.RepoBasePath, walkFunc)
+	if err != nil {
+		return nil, fmt.Errorf("error walking repo base path: %w", err)
+	}
 	return rl, nil
 }
 

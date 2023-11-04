@@ -27,7 +27,7 @@ var (
 )
 
 func ToIndexData(repos []*repo.Repo) data.IndexData {
-	d := data.IndexData{Repos: make([]*data.Repo, len(repos), len(repos))}
+	d := data.IndexData{Repos: make([]*data.Repo, len(repos))}
 	for i, repo := range repos {
 		ir := toDataRepo(repo)
 		d.Repos[i] = &ir
@@ -73,7 +73,7 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 	}
 
 	t.Tree.Hash = data.Hash(c.TreeHash.String())
-	t.Tree.Entries = make([]data.TreeEntry, len(gitTree.Entries), len(gitTree.Entries))
+	t.Tree.Entries = make([]data.TreeEntry, len(gitTree.Entries))
 	for i, entry := range gitTree.Entries {
 		var (
 			hrefSection = "blob"
@@ -179,7 +179,7 @@ func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 func ToRefsData(repo *repo.Repo) (data.RefsData, error) {
 	r := data.RefsData{
 		Repo: toDataRepo(repo),
-		Tags: make([]data.Reference, 0, 0),
+		Tags: make([]data.Reference, 0),
 	}
 	// TODO(dmoch): repo.R.References() might be cleaner
 	bIter, err := repo.R.Branches()
@@ -247,10 +247,10 @@ func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 		Order: git.LogOrderCommitterTime,
 	}
 	gl, err := repo.R.Log(lo)
-	defer gl.Close()
 	if err != nil {
 		return l, fmt.Errorf("error getting log: %w", err)
 	}
+	defer gl.Close()
 	for i := 0; i < data.LogPageSize; i += 1 {
 		c, err := gl.Next()
 		if err != nil {
@@ -266,8 +266,7 @@ func ToLogData(repo *repo.Repo, req *request.Request) (data.LogData, error) {
 			Message:   strings.Split(c.Message, "\n")[0],
 			Time:      c.Committer.When,
 		}
-		commit.ParentHashes = make([]data.Hash, len(c.ParentHashes),
-			len(c.ParentHashes))
+		commit.ParentHashes = make([]data.Hash, len(c.ParentHashes))
 		for i, ph := range c.ParentHashes {
 			commit.ParentHashes[i] = data.Hash(ph.String())
 		}
@@ -302,8 +301,7 @@ func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error
 		return c, fmt.Errorf("error getting stats for commit: %w", err)
 	}
 	c.Diffstat = fileStats.String()
-	c.Commit.ParentHashes = make([]data.Hash, len(gc.ParentHashes),
-		len(gc.ParentHashes))
+	c.Commit.ParentHashes = make([]data.Hash, len(gc.ParentHashes))
 	for i, ph := range gc.ParentHashes {
 		c.Commit.ParentHashes[i] = data.Hash(ph.String())
 	}
@@ -321,7 +319,7 @@ func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error
 			}
 			contents, err := f.Contents()
 			if err != nil {
-				return fmt.Errorf("Contents error: %w", err)
+				return fmt.Errorf("contents error: %w", err)
 			}
 			fp := data.FilePatch{
 				IsBinary: isBinary,
@@ -395,7 +393,7 @@ func readBlobContents(hash plumbing.Hash, repo *git.Repository) (string, error) 
 	if err != nil {
 		return "", fmt.Errorf("error reading blob %s: %w", hash, err)
 	}
-	return fmt.Sprintf("%s", bytes), nil
+	return string(bytes), nil
 }
 
 func toCommitHash(rev string, repo *git.Repository) (plumbing.Hash, error) {
@@ -407,12 +405,12 @@ func toCommitHash(rev string, repo *git.Repository) (plumbing.Hash, error) {
 }
 
 func toFilePatches(dPatches []diff.FilePatch) []data.FilePatch {
-	patches := make([]data.FilePatch, len(dPatches), len(dPatches))
+	patches := make([]data.FilePatch, len(dPatches))
 	for i, dp := range dPatches {
 		chunks := dp.Chunks()
 		p := data.FilePatch{
 			IsBinary: dp.IsBinary(),
-			Chunks:   make([]data.Chunk, len(chunks), len(chunks)),
+			Chunks:   make([]data.Chunk, len(chunks)),
 		}
 		from, to := dp.Files()
 		switch {
@@ -447,7 +445,7 @@ func toDataRepo(repo *repo.Repo) data.Repo {
 }
 
 func toBlobLines(cLines []string) []data.BlobLine {
-	lines := make([]data.BlobLine, len(cLines), len(cLines))
+	lines := make([]data.BlobLine, len(cLines))
 	for i, cl := range cLines {
 		lines[i] = data.BlobLine{Number: i + 1, Content: cl}
 	}

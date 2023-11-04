@@ -50,12 +50,10 @@ To get started with the code, you will need to clone it.
 
     $ git clone https://git.danielmoch.com/dgit
 
-Changes should pass "go vet ./..." and "go test ./..." before
-submission to the mailing list.
+Changes should pass the test suite before submission to the mailing
+list.
 
-    $ cd dgit
-    $ go vet ./...
-    $ go test ./...
+    $ ./all.bash
 
 Discussion and Requests
 -----------------------

@@ -4,7 +4,7 @@ Djmoch's Git Viewer
 DGit is a fast, template-driven Git repository viewer
 written in pure Go. Being written in pure Go, it is possible to
 statically-link the resulting command-line interface with all of its
-depedencies, including templates and static files. When this is
+dependencies, including templates and static files. When this is
 achieved, its only external requirements are the Git repositories
 themselves. This makes DGit suitable for dropping into a chroot or
 other restricted environment.

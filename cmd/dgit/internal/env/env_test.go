@@ -15,7 +15,7 @@ import (
 func TestRunEnv(t *testing.T) {
 	var (
 		w    = new(strings.Builder)
-		args = make([]string, 0, 0)
+		args = make([]string, 0)
 		ctx  = context.Background()
 	)
 	ctx = context.WithValue(ctx, "w", w)

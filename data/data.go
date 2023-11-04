@@ -71,7 +71,7 @@ func (r RequestData) PathElems() []PathElem {
 	var (
 		splitPath = strings.Split(string(r.Path), "/")
 		sp        = new(strings.Builder)
-		elems     = make([]PathElem, len(splitPath)-1, len(splitPath)-1)
+		elems     = make([]PathElem, len(splitPath)-1)
 	)
 	for i := 0; i < len(splitPath)-1; i += 1 {
 		sp.WriteString("/" + splitPath[i])
@@ -380,6 +380,7 @@ func (fp FilePatch) Info() ([]PatchInfo, error) {
 		var (
 			lineInContext = false
 		)
+	context:
 		for _, diffLine := range lines {
 			switch {
 			case i < diffLine && (i+DiffContext) >= diffLine,
@@ -387,7 +388,7 @@ func (fp FilePatch) Info() ([]PatchInfo, error) {
 				i > diffLine && (i-DiffContext) <= diffLine:
 				lineInContext = true
 				inDiff = true
-				break
+				break context
 			}
 		}
 		switch lineInContext {
