@@ -8,6 +8,7 @@
 	<meta property="og:title" content="{{ .Repo.Slug }}">
 	<meta property="og:type" content="object">
 	<meta name="twitter:title" content="{{ .Repo.Slug }}">
+	<script type="text/javascript" src="/-/assets/highlight.js"></script>
 </head>
 <body>
 	{{ template "nav.tmpl" }}
@@ -16,5 +17,6 @@
 		<h2 class="p-summary">at {{ .Revision }}</h2>
 		<pre><code><table>{{ range .Blob.Lines }}<tr id="L{{ .Number }}"><td class="linenum">{{ .Number }}</td><td class="line-content">{{ .Content }}</td></tr>{{ end }}</table></code></pre>
 	</div>
+	<script>initHash(window.location.hash)</script>
 </body>
 </html>
