@@ -10,6 +10,7 @@ h1, h2, h3 {
 
 table {
 	width: 100%;
+	border-collapse: collapse;
 }
 
 img {
@@ -24,6 +25,9 @@ nav {
 	a {
 		vertical-align: middle;
 	}
+	table {
+		border-collapse: reset;
+	}
 }
 
 .p-summary {
@@ -37,15 +41,27 @@ nav {
 	margin-bottom: 0;
 }
 
+.linenum {
+	text-align: right;
+	border-right: 1px solid;
+	padding-right: 5px;
+}
+
+.line-content {
+	padding-left: 5px;
+}
+
 code {
 	background: #eee;
 	background-color: #eee;
+	tr {
+		height: 17px;
+	}
 }
 
 pre {
 	code {
 		display: block;
-		padding: 5px;
 		overflow-x: auto;
 		border: 1px solid black;
 		border-radius: 5px;
