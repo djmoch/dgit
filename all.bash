@@ -4,9 +4,9 @@ GO=go
 misspell_flags="-error -locale US"
 staticcheck_flags="-checks all,-SA1029,-SA9003,-ST1000,-ST1003,-ST1016,-ST1020,-ST1021,-ST1022,-ST1023"
 
-[ -f "LICENSE" ] || { echo "not running in repo root"; exit 1; }
-
 shopt -s globstar
+
+[ -f "LICENSE" ] || { echo "not running in repo root"; exit 1; }
 
 print_failure() {
 	cat <<- EOFAIL
@@ -73,6 +73,12 @@ run_gotest() {
 	return $?
 }
 
+run_gogenerate() {
+	ensure_go_binary github.com/evanw/esbuild
+	go generate ./...
+	return $?
+}
+
 sub=$1
 
 [ -n "$1" ] || sub=ci
@@ -83,6 +89,9 @@ main() {
 		-h|--help|help)
 			usage
 			exit 0
+			;;
+		gen)
+			run_gogenerate || ret=1
 			;;
 		ci)
 			run_staticcheck || ret=1
@@ -109,4 +118,4 @@ main() {
 	[ $ret -eq 0 ] || { print_failure; exit 1; }
 }
 
-main
+main $*
