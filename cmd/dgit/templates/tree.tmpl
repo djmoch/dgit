@@ -27,7 +27,7 @@
 		{{- range .Tree.Entries }}
 		<tr><td>{{ .Mode.String }}</td><td><a href="{{ .Href }}">{{ .Name }}</a></td></tr>{{ end }}
 		</table>{{ end }}
-		{{ if .HasReadme }}<pre><code>{{ .Readme }}</code></pre> {{ end }}
+		{{ if .HasReadme }}<pre><code class="readme">{{ .Readme }}</code></pre> {{ end }}
 	</div>
 </body>
 </html>

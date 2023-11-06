@@ -42,21 +42,25 @@ nav table {
 }
 
 .linenum {
+  user-select: none;
   text-align: right;
   border-right: 1px solid;
+  padding-left: 5px;
   padding-right: 5px;
 }
 
-.line-content {
+.line-content, .readme {
   padding-left: 5px;
+  padding-right: 5px;
 }
 
 code {
   background: #eee;
   background-color: #eee;
 }
-  code tr {
-    height: 17px;
+
+code tr {
+  height: 17px;
 }
 
 pre code {
