@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/dustin/go-humanize v1.0.1
+	github.com/evanw/esbuild v0.19.5
 	github.com/go-git/go-git/v5 v5.9.0
 	golang.org/x/sys v0.13.0
 )

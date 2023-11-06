@@ -73,12 +73,6 @@ run_gotest() {
 	return $?
 }
 
-run_gogenerate() {
-	ensure_go_binary github.com/evanw/esbuild
-	go generate ./...
-	return $?
-}
-
 sub=$1
 
 [ -n "$1" ] || sub=ci
@@ -89,9 +83,6 @@ main() {
 		-h|--help|help)
 			usage
 			exit 0
-			;;
-		gen)
-			run_gogenerate || ret=1
 			;;
 		ci)
 			run_staticcheck || ret=1
