@@ -34,10 +34,11 @@ type Repo struct {
 	Description string
 	// LastModified records the timestamp of the most recent
 	// commit as read from info/web/last-modified within the
-	// repository's Git directory.
+	// repository's Git directory. See [CGit] for prior art.
+	// [CGit]: https://git.zx2c4.com/cgit/tree/contrib/hooks/post-receive.agefile
 	LastModified time.Time
 
-	// R is the raw [github.com/go-git/git-git/v5.Repository] object
+	// R is the raw repository
 	R *git.Repository
 }
 
