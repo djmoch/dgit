@@ -23,7 +23,7 @@ tasks:
     desc: (lint, fast) run staticcheck
     preconditions:
       - sh: command -v staticcheck
-        msg: run 'go install honnef.co/go/tools/cmd/staticcheck@latest' and try again
+        msg: run '{{.GO}} install honnef.co/go/tools/cmd/staticcheck@latest' and try again
     cmds:
       - "staticcheck {{.STATICCHECK_FLAGS}} ./..."
 
@@ -31,7 +31,7 @@ tasks:
     desc: (lint, fast) run misspell
     preconditions:
       - sh: command -v misspell
-        msg: run 'go install github.com/client9/misspell/cmd/misspell@latest' and try again
+        msg: run '{{.GO}} install github.com/client9/misspell/cmd/misspell@latest' and try again
     shopt: [globstar]
     cmds:
       - misspell {{.MISSPELL_FLAGS}} -source go **/*.go
@@ -41,7 +41,7 @@ tasks:
     desc: (lint, fast) run unparam
     preconditions:
       - sh: command -v unparam
-        msg: run 'go install mvdan.cc/unparam@latest' and try again
+        msg: run '{{.GO}} install mvdan.cc/unparam@latest' and try again
     cmds:
       - unparam ./...
 
@@ -49,6 +49,6 @@ tasks:
     desc: (lint) run govulncheck
     preconditions:
       - sh: command -v govulncheck
-        msg: run 'go install golang.org/x/vuln/cmd/govulncheck@latest' and try again
+        msg: run '{{.GO}} install golang.org/x/vuln/cmd/govulncheck@latest' and try again
     cmds:
       - govulncheck ./...
