@@ -3,16 +3,25 @@ Changelog
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog], and this project adheres to
-[Semantic Versioning].
+The format is based on Keep a Changelog [1], and this project adheres
+to Semantic Versioning [2].
 
-Keep a Changelog: https://keepachangelog.com/en/1.1.0/
-Semantic Versioning: https://semver.org/spec/v2.0.0.html
+[1]: https://keepachangelog.com/en/1.1.0/
+[2]: https://semver.org/spec/v2.0.0.html
 
 Unreleased
 ----------
 
-https://git.danielmoch.com/dgit/-/tree/main
+https://git.danielmoch.com/dgit/-/diff/v0.1.0..main
+
+Changed
+
+- Migrated all.bash to Taskfile.yml
+
+v0.1.0 - 2023-11-06
+-------------------
+
+https://git.danielmoch.com/dgit/-/tree/v0.1.0
 
 Added
 
