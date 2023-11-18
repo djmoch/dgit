@@ -108,6 +108,22 @@ func TestParse(t *testing.T) {
 				Path:    "objects/pack/pack-2304082c3b4322518796a0586f3454cc803f0cfd.idx",
 			},
 		},
+		{
+			url: mustParse("/testRepo/info/refs?service=git-upload-pack"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "smartClone",
+				Path:    "info/refs",
+			},
+		},
+		{
+			url: mustParse("/testRepo/git-upload-pack?service=git-upload-pack"),
+			req: &Request{
+				Repo:    "testRepo",
+				Section: "smartClone",
+				Path:    "git-upload-pack",
+			},
+		},
 	}
 
 	for _, entry := range urlTable {

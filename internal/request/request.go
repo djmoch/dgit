@@ -48,11 +48,17 @@ var (
 )
 
 func parseCloneRequest(url *url.URL) (*Request, error) {
+	var smart bool
 	r := new(Request)
+
 	splitPath := splitPath(url.Path)
 
 	if len(splitPath) < 2 {
 		return nil, fmt.Errorf("%w: %s", errInvalidClonePath, url.Path)
+	}
+
+	if url.Query().Has("service") && url.Query().Get("service") == "git-upload-pack" {
+		smart = true
 	}
 
 	for len(splitPath) > 1 {
@@ -62,7 +68,11 @@ func parseCloneRequest(url *url.URL) (*Request, error) {
 
 		switch len(splitPath) {
 		case 1:
-			if splitPath[0] == "HEAD" {
+			switch splitPath[0] {
+			case "git-upload-pack":
+				smart = true
+				fallthrough
+			case "HEAD":
 				done = true
 			}
 		case 2:
@@ -78,6 +88,9 @@ func parseCloneRequest(url *url.URL) (*Request, error) {
 		}
 		if done {
 			r.Section = "dumbClone"
+			if smart {
+				r.Section = "smartClone"
+			}
 			r.Path = path.Join(splitPath...)
 			return r, nil
 		}

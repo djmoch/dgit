@@ -30,6 +30,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -39,6 +40,7 @@ import (
 	"djmo.ch/dgit/internal/middleware"
 	"djmo.ch/dgit/internal/repo"
 	"djmo.ch/dgit/internal/request"
+	"djmo.ch/dgit/internal/smart"
 	"github.com/dustin/go-humanize"
 )
 
@@ -135,6 +137,9 @@ func (d *DGit) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h(w, req)
 	case "dumbClone":
 		h := middleware.Get(middleware.Repo(d.dumbCloneHandler))
+		h(w, req)
+	case "smartClone":
+		h := middleware.Repo(d.smartCloneHandler)
 		h(w, req)
 	default:
 		log.Println("ERROR: Request for unknown section:", dReq.Section)
@@ -364,6 +369,22 @@ func (d *DGit) dumbCloneHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "Internal server error")
 		return
+	}
+}
+
+func (d *DGit) smartCloneHandler(w http.ResponseWriter, r *http.Request) {
+	dReq := r.Context().Value("dReq").(*request.Request)
+	repo := getRepo(r)
+	if repo == nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, "Repo not found")
+		return
+	}
+	switch dReq.Path {
+	case "info/refs":
+		smart.HttpInfoRefs(filepath.Join(d.Config.RepoBasePath, repo.Path))(w, r)
+	case "git-upload-pack":
+		smart.HttpGitUploadPack(filepath.Join(d.Config.RepoBasePath, repo.Path))(w, r)
 	}
 }
 
