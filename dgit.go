@@ -15,7 +15,7 @@
 // drop this Handler into your site's [http.ServeMux] and start viewing
 // Git repositories.
 //
-// The DGit handler supports the "dumb" [Git HTTP transfer] protocol, so
+// The DGit handler supports both [Git HTTP transfer] protocols, so
 // read-only repository operations, such as cloning and fetching, are
 // supported.
 //
