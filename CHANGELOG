@@ -14,6 +14,10 @@ Unreleased
 
 https://git.danielmoch.com/dgit/-/diff/v0.1.0..main
 
+Added
+
+- Support for smart clones/pulls
+
 Changed
 
 - Migrated all.bash to Taskfile.yml
