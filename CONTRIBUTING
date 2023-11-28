@@ -67,15 +67,8 @@ following addresses to manage your subscription to the mailing list.
 - dgit-dev+unsubscribe@
 - dgit-dev+help@
 
-Patches and pull requests are welcome, preferably via emailed output
-of [git-request-pull(1)] sent to the mailing list. Bug reports should
-also be directed to the mailing list.
-
-If you aren't hosting a fork anywhere online, you can also send patches
-using [git-format-patch(1)].
-
-git-format-patch(1): https://www.git-scm.com/docs/git-format-patch
-git-request-pull(1): https://www.git-scm.com/docs/git-request-pull
+Patches are welcome. If you are unfamiliar with how to submit code for
+review via email, see https://git-send-email.io.
 
 Releases
 --------
