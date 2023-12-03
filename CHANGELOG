@@ -17,6 +17,7 @@ https://git.danielmoch.com/dgit/-/diff/v0.1.0..main
 Added
 
 - Support for smart clones/pulls
+- Automatic import/format checking with goimports
 
 Changed
 

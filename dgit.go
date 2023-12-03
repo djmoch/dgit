@@ -34,8 +34,9 @@ import (
 	"sort"
 	"strings"
 
-	"djmo.ch/dgit/config"
 	"djmo.ch/dgit/data"
+
+	"djmo.ch/dgit/config"
 	"djmo.ch/dgit/internal/convert"
 	"djmo.ch/dgit/internal/middleware"
 	"djmo.ch/dgit/internal/repo"

@@ -22,7 +22,7 @@ var Cmd = &base.Command{
 	Name:      "serve",
 	Usage:     "dgit serve URL",
 	ShortHelp: "serve Git repositories",
-	LongHelp: `Serve serves Git repositories
+	LongHelp: `Serve serves Git repositories.
 
 DGit listens and serves repositories on the provided URL. The only
 recognized scheme is http.

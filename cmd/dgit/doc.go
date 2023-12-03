@@ -5,7 +5,7 @@
 /*
 usage: dgit <command> [arguments]
 
-Djmoch's Git Viewer
+DGit is Djmoch's Git Viewer.
 
 DGit is a template-driven alternative to CGit. It listens on a TCP
 port to allow viewing Git repositories from a web browser.
@@ -28,7 +28,7 @@ Use "dgit help <topic>" for more information about that topic.
 
 usage: dgit serve URL
 
-Serve serves Git repositories
+Serve serves Git repositories.
 
 DGit listens and serves repositories on the provided URL. The only
 recognized scheme is http.

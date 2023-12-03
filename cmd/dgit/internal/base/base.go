@@ -35,7 +35,7 @@ type Command struct {
 
 var DGit = &Command{
 	Name: "dgit",
-	LongHelp: `Djmoch's Git Viewer
+	LongHelp: `DGit is Djmoch's Git Viewer.
 
 DGit is a template-driven alternative to CGit. It listens on a TCP
 port to allow viewing Git repositories from a web browser.
