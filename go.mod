@@ -7,7 +7,9 @@ require (
 	github.com/evanw/esbuild v0.19.5
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/go-git/go-git/v5 v5.11.0
+	github.com/yuin/goldmark v1.6.0
 	golang.org/x/sys v0.15.0
+	mvdan.cc/xurls/v2 v2.5.0
 )
 
 require (

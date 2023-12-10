@@ -5,8 +5,10 @@
 package convert
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"path"
 	"strings"
@@ -19,6 +21,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"mvdan.cc/xurls/v2"
 )
 
 var (
@@ -113,16 +118,13 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 
 	if len(readmes) > 0 {
 		var (
-			hash plumbing.Hash
-			tmp  plumbing.Hash
-			ok   bool
+			hash       plumbing.Hash
+			tmp        plumbing.Hash
+			ok         bool
+			isMarkdown bool
 		)
 		// least preferred first
 		tmp, ok = readmes["README.rst"]
-		if ok {
-			hash = tmp
-		}
-		tmp, ok = readmes["README.md"]
 		if ok {
 			hash = tmp
 		}
@@ -130,11 +132,24 @@ func ToTreeData(repo *repo.Repo, req *request.Request) (data.TreeData, error) {
 		if ok {
 			hash = tmp
 		}
+		tmp, ok = readmes["README.md"]
+		if ok {
+			hash = tmp
+			isMarkdown = true
+		}
 		contents, err := readBlobContents(hash, repo.R)
 		if err != nil {
 			return t, err
 		}
-		t.Readme = contents
+		if isMarkdown {
+			mkd, err := renderMarkdown(contents)
+			if err != nil {
+				return t, fmt.Errorf("error rendering markdown: %w", err)
+			}
+			t.MarkdownReadme = mkd
+		} else {
+			t.Readme = contents
+		}
 	}
 	return t, nil
 }
@@ -173,6 +188,17 @@ func ToBlobData(repo *repo.Repo, req *request.Request) (data.BlobData, error) {
 		return b, fmt.Errorf("error getting file lines: %w", err)
 	}
 	b.Blob.Lines = toBlobLines(lines)
+	if strings.HasSuffix(req.Path, ".md") || strings.HasSuffix(req.Path, ".mkd") {
+		mdStr, err := f.Contents()
+		if err != nil {
+			return b, fmt.Errorf("error getting file contents: %w", err)
+		}
+		mkd, err := renderMarkdown(mdStr)
+		if err != nil {
+			return b, fmt.Errorf("error rendering markdown: %w", err)
+		}
+		b.RenderedMarkdown = mkd
+	}
 	return b, nil
 }
 
@@ -450,4 +476,26 @@ func toBlobLines(cLines []string) []data.BlobLine {
 		lines[i] = data.BlobLine{Number: i + 1, Content: cl}
 	}
 	return lines
+}
+
+func renderMarkdown(m string) (template.HTML, error) {
+	outBuf := new(bytes.Buffer)
+	markdown := goldmark.New(
+		goldmark.WithExtensions(
+			extension.NewLinkify(
+				extension.WithLinkifyAllowedProtocols([][]byte{
+					[]byte("http:"),
+					[]byte("https:"),
+					[]byte("mailto:"),
+				}),
+				extension.WithLinkifyURLRegexp(
+					xurls.Strict(),
+				),
+			),
+		),
+	)
+	if err := markdown.Convert([]byte(m), outBuf); err != nil {
+		return "", fmt.Errorf("error rendering markdown: %w", err)
+	}
+	return template.HTML(outBuf.String()), nil
 }

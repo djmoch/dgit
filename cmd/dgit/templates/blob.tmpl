@@ -15,8 +15,9 @@
 	{{ template "nav.tmpl" }}
 	<div id="main">
 		<h1 class="p-name">{{ range .PathElems }}<a href="/{{ .Repo }}/-/tree/{{ .Revision}}{{ .Path }}">{{ .Base }}</a>/{{ end }}{{ .PathBase }} in <a href="/{{ .Repo.Slug }}">{{ .Repo.Slug }}</a></h1>
-		<h2 class="p-summary">at {{ .Revision }}</h2>
-		<pre><code><table>{{ range .Blob.Lines }}<tr id="L{{ .Number }}"><td class="linenum">{{ .Number }}</td><td class="line-content">{{ .Content }}</td></tr>{{ end }}</table></code></pre>
+		<h2 class="p-summary">at {{ .Revision }}</h2>{{ if eq .RenderedMarkdown "" }}
+		<pre><code><table>{{ range .Blob.Lines }}<tr id="L{{ .Number }}"><td class="linenum">{{ .Number }}</td><td class="line-content">{{ .Content }}</td></tr>{{ end }}</table></code></pre>{{ else }}
+		{{ .RenderedMarkdown }} {{ end }}
 	</div>
 	<script>initHash(window.location.hash)</script>
 </body>

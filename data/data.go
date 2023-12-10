@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"html/template"
 	"log"
 	"path"
 	"strconv"
@@ -121,12 +122,21 @@ type TreeData struct {
 	Tree Tree
 	// Tree README contents.
 	Readme string
+	// Tree README markdown contents.
+	MarkdownReadme template.HTML
 }
 
 // HasReadme returns true if the tree has a file named README. When
 // true, the README contents are available in TreeData.Readme.
 func (t TreeData) HasReadme() bool {
 	return t.Readme != ""
+}
+
+// HasMarkdownReadme returns true if the tree has a file named
+// README.md. When true, the README contents are available in
+// TreeData.MarkdownReadme.
+func (t TreeData) HasMarkdownReadme() bool {
+	return t.MarkdownReadme != ""
 }
 
 // IsEmpty returns true if the Tree is empty.
@@ -238,6 +248,8 @@ type BlobData struct {
 	Commit Commit
 	// The Blob itself.
 	Blob Blob
+	// If the blob is a Markdown file, rendered content goes here
+	RenderedMarkdown template.HTML
 }
 
 // Blob is information related to a Git blob.
