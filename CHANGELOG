@@ -23,6 +23,7 @@ Changed
 
 - Migrated all.bash to Taskfile.yml
 - Upgraded module to require Go 1.21
+- Upgraded go-git to v5.11.0
 
 v0.1.0 - 2023-11-06
 -------------------
