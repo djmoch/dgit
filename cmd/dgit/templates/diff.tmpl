@@ -4,6 +4,7 @@
     " vocab="http://ogp.me/ns" lang="en">
 <head>
 	{{ template "partial_head.tmpl" . }}
+	{{ template "partial_vcs_autodiscovery.tmpl" . }}
 	<title>Diff | {{ .Repo.Slug }}</title>
 	<meta property="og:title" content="{{ .Repo.Slug }}">
 	<meta property="og:type" content="object">

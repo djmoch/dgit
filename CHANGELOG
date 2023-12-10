@@ -18,6 +18,9 @@ Added
 
 - Support for smart clones/pulls
 - Automatic import/format checking with goimports
+- [VCS Autodiscovery Tags] added to sample templates
+
+[VCS Autodiscovery Tags]: https://git.sr.ht/~ancarda/vcs-autodiscovery-rfc/tree/HEAD/RFC.md
 
 Changed
 

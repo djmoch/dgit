@@ -4,6 +4,7 @@
     " vocab="http://ogp.me/ns" lang="en">
 <head>
 	{{ template "partial_head.tmpl" . }}
+	{{ template "partial_vcs_autodiscovery.tmpl" . }}
 	<title>{{ .Repo.Slug }}{{ if and (eq .Path "") (ne .Repo.Description "") }}: {{ .Repo.Description }}{{end}}</title>
 	<meta property="og:title" content="{{ .Repo.Slug }}">
 	<meta property="og:type" content="object">
