@@ -1,5 +1,7 @@
 # Djmoch's Git Viewer
 
+[![Go Reference](https://pkg.go.dev/badge/djmo.ch/dgit.svg)](https://pkg.go.dev/djmo.ch/dgit)
+
 DGit is a fast, template-driven Git repository viewer written in pure
 Go.
 Being written in pure Go, it is possible to statically-link the
