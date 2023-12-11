@@ -13,12 +13,7 @@ table {
   border-collapse: collapse;
 }
 
-img {
-  border-radius: 10px;
-}
-
 nav img {
-  border-radius: initial;
   vertical-align: middle;
 }
 
