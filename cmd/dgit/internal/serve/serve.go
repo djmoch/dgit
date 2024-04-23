@@ -32,7 +32,7 @@ repository operations, such as cloning and fetching, are supported.
 	`,
 }
 
-//go:embed assets/*
+//go:embed assets/*.ico assets/*.js assets/*.map assets/*.jpg assets/*.png assets/*.css
 var assets embed.FS
 
 var robotstxt = `# Welcome to DGit
