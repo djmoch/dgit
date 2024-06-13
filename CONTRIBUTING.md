@@ -63,26 +63,17 @@ $ task
 
 ## Discussion and Requests
 
-All discussion takes place on the public mailing list,
-dgit-dev@danielmoch.com.
-The list's archive can be found at
-https://lists.danielmoch.com/dgit-dev.
-Emails can be sent to the following addresses to manage your
-subscription to the mailing list.
+All discussion takes place on the [issue
+tracker](https://github.com/djmoch/dgit/issues).
 
-- dgit-dev+subscribe@
-- dgit-dev+unsubscribe@
-- dgit-dev+help@
-
-Patches are welcome.
-If you are unfamiliar with how to submit code for review via email,
-see https://git-send-email.io.
+Pull requests are welcome.
 
 ## Releases
 
 Releases should eventually land on the Go module proxies after they
 are tagged.
-Signed source tarballs are maintained at
-https://dl.danielmoch.com/dgit.
-Instructions for verifying tarballs are in the README file at the
-previous link.
+Signed source tarballs are maintained on the releases page.
+Archives are signed with `signify`.
+To support the use of `minisign`, which is compatable with `signify`,
+detached signatures will be created.
+Signature files are indicated with a .minisig extension.
