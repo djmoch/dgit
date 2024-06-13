@@ -1,3 +1,4 @@
+# See LICENSE file for copyright and license details
 version: "3"
 
 vars:
@@ -8,15 +9,24 @@ vars:
 
 tasks:
   default:
-    deps: [fast]
+    cmds:
+      - task: fast
 
   fast:
     desc: run a fast lint/test suite (default)
-    deps: [goimports, gotest, govet, staticcheck, misspell, unparam]
+    cmds:
+      - task: goimports
+      - task: gotest
+      - task: govet
+      - task: staticcheck
+      - task: misspell
+      - task: unparam
 
-  full:
+  ci:
     desc: run a full lint/test suite
-    deps: [default, govulncheck]
+    cmds:
+      - task: default
+      - task: govulncheck
 
   githook:
     desc: same as "fast," but changes are automatically applied if possible
