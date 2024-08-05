@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/yuin/goldmark v1.7.4
-	golang.org/x/sys v0.22.0
+	golang.org/x/sys v0.23.0
 	mvdan.cc/xurls/v2 v2.5.0
 )
 
