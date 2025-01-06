@@ -6,7 +6,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/evanw/esbuild v0.24.2
 	github.com/go-git/go-billy/v5 v5.6.1
-	github.com/go-git/go-git/v5 v5.13.0
+	github.com/go-git/go-git/v5 v5.13.1
 	github.com/yuin/goldmark v1.7.8
 	golang.org/x/sys v0.28.0
 	mvdan.cc/xurls/v2 v2.5.0
