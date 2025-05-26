@@ -345,7 +345,7 @@ func (fp FilePatch) Info() ([]PatchInfo, error) {
 		fullInfo = make([]PatchInfo, 0)
 		info     = make([]PatchInfo, 0)
 
-		left, right int = 1, 1
+		left, right = 1, 1
 	)
 	if fp.IsBinary {
 		return info, errBinaryPatch

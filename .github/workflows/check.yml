@@ -1,5 +1,5 @@
 # See LICENSE file for copyright and license information
-name: CI
+name: Check
 
 on:
   push:
@@ -19,14 +19,7 @@ jobs:
       with:
         go-version-file: 'go.mod'
 
-    - name: Setup go-task
-      uses: lukeshay/setup-task@v1    
-
-    - name: Test
+    - name: Check
       run: |
-        go install golang.org/x/tools/cmd/goimports@latest
-        go install honnef.co/go/tools/cmd/staticcheck@latest
-        go install github.com/client9/misspell/cmd/misspell@latest
-        go install mvdan.cc/unparam@latest
         go install golang.org/x/vuln/cmd/govulncheck@latest
-        task ci
+        govulncheck ./...

@@ -3,9 +3,6 @@ version: "3"
 
 vars:
   GO: go
-  CHECKIMPORTS_FLAGS: ''
-  MISSPELL_FLAGS: -error -locale US
-  STATICCHECK_FLAGS: -checks all,-SA1029,-SA9003,-ST1000,-ST1003,-ST1016,-ST1020,-ST1021,-ST1022,-ST1023
 
 tasks:
   default:
@@ -15,41 +12,14 @@ tasks:
   fast:
     desc: run a fast lint/test suite (default)
     cmds:
-      - task: goimports
+      - task: golangci-lint
       - task: gotest
-      - task: govet
-      - task: staticcheck
-      - task: misspell
-      - task: unparam
 
   ci:
     desc: run a full lint/test suite
     cmds:
       - task: default
       - task: govulncheck
-
-  githook:
-    desc: same as "fast," but changes are automatically applied if possible
-    deps: [gotest, govet, staticcheck, unparam]
-    shopt: [globstar]
-    requires:
-      vars: [GO]
-    cmds:
-      - task: goimports
-        vars: {EXTRA_ARGS: -fix}
-      - task: misspell
-        vars: {EXTRA_ARGS: -w}
-
-  goimports:
-    desc: (lint, fast) run goimports
-    preconditions:
-      - sh: command -v goimports
-        msg: run '{{.GO}} install golang.org/x/tools/cmd/goimports@latest' and try again
-    shopt: [globstar]
-    requires:
-      vars: [GO]
-    cmds:
-      - "{{.GO}} run ./devtools/checkimports {{.EXTRA_ARGS}} *.go **/*.go"
 
   gotest:
     desc: (lint, fast) run go test
@@ -58,38 +28,13 @@ tasks:
     cmds:
       - "{{.GO}} test ./..."
 
-  govet:
-    desc: (lint, fast) run go vet
-    requires:
-      vars: [GO]
-    cmds:
-      - "{{.GO}} vet ./..."
-
-  staticcheck:
-    desc: (lint, fast) run staticcheck
+  golangci-lint:
+    desc: (lint, fast) run golangci-lint
     preconditions:
-      - sh: command -v staticcheck
-        msg: run '{{.GO}} install honnef.co/go/tools/cmd/staticcheck@latest' and try again
+      - sh: command -v golangci-lint
+        msg: install golangci-lint and try again
     cmds:
-      - staticcheck {{.STATICCHECK_FLAGS}} ./...
-
-  misspell:
-    desc: (lint, fast) run misspell
-    preconditions:
-      - sh: command -v misspell
-        msg: run '{{.GO}} install github.com/client9/misspell/cmd/misspell@latest' and try again
-    shopt: [globstar]
-    cmds:
-      - misspell {{.EXTRA_ARGS}} {{.MISSPELL_FLAGS}} -source go *.go **/*.go
-      - misspell {{.EXTRA_ARGS}} {{.MISSPELL_FLAGS}} CHANGELOG CONTRIBUTING LICENSE README
-
-  unparam:
-    desc: (lint, fast) run unparam
-    preconditions:
-      - sh: command -v unparam
-        msg: run '{{.GO}} install mvdan.cc/unparam@latest' and try again
-    cmds:
-      - unparam ./...
+      - golangci-lint run
 
   govulncheck:
     desc: (lint) run govulncheck

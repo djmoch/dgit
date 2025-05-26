@@ -27,8 +27,8 @@ Changed
 
 Added
 
- - Scaffolding for subcommands and documentation
- - Viewing repositories, trees, log, refs, commits, diffs, blobs, and raw
-   blobs
- - Git "dumb" HTTP transfer protocol
- - Support for pledge(2) and unveil(2) in OpenBSD
+- Scaffolding for subcommands and documentation
+- Viewing repositories, trees, log, refs, commits, diffs, blobs, and raw
+  blobs
+- Git "dumb" HTTP transfer protocol
+- Support for pledge(2) and unveil(2) in OpenBSD
