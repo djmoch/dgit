@@ -49,16 +49,23 @@ considered normative:
 
 To get started with the code, you will need to clone it.
 
-```
-$ git clone https://git.danielmoch.com/dgit
+``` sh
+git clone https://github.com/djmoch/dgit.git
 ```
 
-Changes should pass the test suite before submission to the mailing
-list.
+Changes should pass the test suite before opening a pull request.
 We use [Taskfiles](https://taskfile.dev) as our task runner.
 
+``` sh
+task
 ```
-$ task
+
+We also use pre-commit to enable additional checks and to integrate
+with Git's hook suite.
+To install the hook:
+
+``` sh
+pre-commit install
 ```
 
 ## Discussion and Requests

@@ -82,11 +82,11 @@ func readRefs(r *git.Repository) (*DumbCloneResponse, error) {
 		if strings.Contains(ref.Name().String(), "HEAD") {
 			return nil
 		}
-		b.WriteString(fmt.Sprintf("%s\t%s\n", ref.Hash(), ref.Name()))
+		fmt.Fprintf(b, "%s\t%s\n", ref.Hash(), ref.Name())
 		// also list annotated tag targets
 		aTag, err := r.TagObject(ref.Hash())
 		if err == nil {
-			b.WriteString(fmt.Sprintf("%s\t%s\n", aTag.Target, "refs/tags"+aTag.Name+"^{}"))
+			fmt.Fprintf(b, "%s\t%s\n", aTag.Target, "refs/tags"+aTag.Name+"^{}")
 		}
 		return nil
 	}); err != nil {
@@ -117,7 +117,7 @@ func readPacks(path string) (*DumbCloneResponse, error) {
 			return filepath.SkipDir
 		}
 		if strings.HasSuffix(info.Name(), ".pack") {
-			b.WriteString(fmt.Sprintf("P %s\n", info.Name()))
+			fmt.Fprintf(b, "P %s\n", info.Name())
 		}
 		return nil
 	}

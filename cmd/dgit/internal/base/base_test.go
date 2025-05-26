@@ -16,7 +16,7 @@ func TestFindCommand(t *testing.T) {
 	}
 	ret = FindCommand("foo")
 	if ret != nil {
-		t.Error("FindCommand found non-existant command")
+		t.Error("FindCommand found non-existent command")
 	}
 }
 

@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/djmo.ch/dgit.svg)](https://pkg.go.dev/djmo.ch/dgit)
 
 DGit is a fast, template-driven Git repository viewer written in pure
-Go.
+Go. derf
 Being written in pure Go, it is possible to statically-link the
 resulting command-line interface with all of its dependencies,
 including templates and static files.

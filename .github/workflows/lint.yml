@@ -1,0 +1,17 @@
+# See LICENSE file for copyright and license information
+name: GolangCI-Lint
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: lint
+      uses: golangci/golangci-lint-action@v8.0.0

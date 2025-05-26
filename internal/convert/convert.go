@@ -351,7 +351,7 @@ func ToCommitData(repo *repo.Repo, req *request.Request) (data.CommitData, error
 				IsBinary: isBinary,
 				File:     f.Name + " (created)",
 				Chunks: []data.Chunk{
-					data.Chunk{Content: contents, Type: data.Add},
+					{Content: contents, Type: data.Add},
 				},
 			}
 			c.FilePatches = append(c.FilePatches, fp)
