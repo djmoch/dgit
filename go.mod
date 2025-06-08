@@ -4,7 +4,7 @@ go 1.23.8
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/evanw/esbuild v0.25.4
+	github.com/evanw/esbuild v0.25.5
 	github.com/go-git/go-billy/v5 v5.6.2
 	github.com/go-git/go-git/v5 v5.16.0
 	github.com/yuin/goldmark v1.7.12
