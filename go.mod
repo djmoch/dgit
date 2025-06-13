@@ -2,6 +2,8 @@ module djmo.ch/dgit
 
 go 1.23.8
 
+toolchain go1.23.10
+
 require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/evanw/esbuild v0.25.5
