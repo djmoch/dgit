@@ -10,7 +10,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.6.2
 	github.com/go-git/go-git/v5 v5.16.2
 	github.com/yuin/goldmark v1.7.13
-	golang.org/x/sys v0.34.0
+	golang.org/x/sys v0.35.0
 	mvdan.cc/xurls/v2 v2.6.0
 )
 
