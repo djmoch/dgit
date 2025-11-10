@@ -1,16 +1,14 @@
 module djmo.ch/dgit
 
-go 1.23.8
-
-toolchain go1.23.10
+go 1.24.9
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/evanw/esbuild v0.25.9
+	github.com/evanw/esbuild v0.25.5
 	github.com/go-git/go-billy/v5 v5.6.2
 	github.com/go-git/go-git/v5 v5.16.2
-	github.com/yuin/goldmark v1.7.13
-	golang.org/x/sys v0.35.0
+	github.com/yuin/goldmark v1.7.12
+	golang.org/x/sys v0.33.0
 	mvdan.cc/xurls/v2 v2.6.0
 )
 
